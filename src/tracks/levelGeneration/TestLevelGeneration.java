@@ -53,7 +53,7 @@ public class TestLevelGeneration {
 
 
 		// 1. This starts a game, in a generated level created by a specific level generator
-		if(LevelGenMachine.generateOneLevel(game, mctsLevelGenerator, recordLevelFile)){
+		if(LevelGenMachine.generateOneLevel(game, nmcsLevelGenerator, recordLevelFile)){
 		    LevelGenMachine.playOneGeneratedLevel(game, recordActionsFile, recordLevelFile, seed);
 		}
 
