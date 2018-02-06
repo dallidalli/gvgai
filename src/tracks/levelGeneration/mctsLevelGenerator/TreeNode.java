@@ -1,8 +1,6 @@
 package tracks.levelGeneration.mctsLevelGenerator;
 
-import apple.laf.JRSUIUtils;
 import core.game.GameDescription;
-import sun.awt.image.ImageWatched;
 import tools.Pair;
 
 import java.util.*;

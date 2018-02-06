@@ -12,6 +12,7 @@ public class TestLevelGeneration {
 		String geneticGenerator = "tracks.levelGeneration.geneticLevelGenerator.LevelGenerator";
 		String constructiveLevelGenerator = "tracks.levelGeneration.constructiveLevelGenerator.LevelGenerator";
 		String mctsLevelGenerator = "tracks.levelGeneration.mctsLevelGenerator.LevelGenerator";
+		String nmcsLevelGenerator = "tracks.levelGeneration.nmcsLevelGenerator.LevelGenerator";
 
 		String gamesPath = "examples/gridphysics/";
 		String physicsGamesPath = "examples/contphysics/";
