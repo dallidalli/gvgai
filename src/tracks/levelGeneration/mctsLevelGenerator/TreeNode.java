@@ -236,11 +236,8 @@ public class TreeNode{
 
             return rollOut(cur.children[selectedChild]);
         } else if (softConstraint < 1) {
-            System.out.println(cur.getCurrentLevel().getLevelString(cur.getCurrentLevel().getLevelMapping()));
             return cur.currentLevel.getConstrainFitness() * 4;
         } else {
-            System.out.println(cur.getCurrentLevel().getLevelString(cur.getCurrentLevel().getLevelMapping()));
-
             double constraintFitness = 0;
             double fitness = 0;
 

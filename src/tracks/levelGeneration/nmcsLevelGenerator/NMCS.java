@@ -4,20 +4,21 @@ import core.game.GameDescription;
 import tools.Pair;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.function.Supplier;
 
 public class NMCS {
 
-    public static ArrayList<Pair<GeneratedLevel.SpritePointData, String>> allPossibleActions = new ArrayList<>();
-    public static GeneratedLevel level;
-    public static ArrayList<String> allSprites = new ArrayList<>();
-    public static double possiblePositions;
+    public ArrayList<Pair<GeneratedLevel.SpritePointData, String>> allPossibleActions = new ArrayList<>();
+    public GeneratedLevel level;
+    public ArrayList<String> allSprites = new ArrayList<>();
+    public double possiblePositions;
     public int evaluated = 0;
+    public LevelEvaluationFunction eval;
 
     public NMCS(int width, int height, boolean empty){
-        level = new GeneratedLevel(width, height);
 
+
+        level = new GeneratedLevel(width, height);
 
         if (empty){
             level.InitializeEmpty();
@@ -38,6 +39,9 @@ public class NMCS {
         allSprites.addAll(tmp);
 
         calcActions();
+
+        eval = new LevelEvaluationFunction();
+        eval.generateEvaluationFunction();
 
         System.out.println("number of actions: " + allPossibleActions.size());
     }
@@ -68,8 +72,7 @@ public class NMCS {
             actions = customActionsSingle(actions, actions.get(selectedChild));
         }
         evaluated++;
-        System.out.println(evaluated);
-        return new Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData,String>>>(getSoftValue(seq), seq);
+        return new Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData,String>>>(getEvalValue(actions, seq), seq);
     } else {
             ArrayList<Pair<GeneratedLevel.SpritePointData, String>> seq = new ArrayList<>();
             Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>> globalBestResult = new Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>>(Double.MIN_VALUE, null);
@@ -93,7 +96,7 @@ public class NMCS {
 
 
 
-                if(currentBestResult.first >= globalBestResult.first){
+                if(currentBestResult.first > globalBestResult.first){
                     seq.add(currentBestAction);
                     globalBestResult = currentBestResult;
                     globalBestResult.second.addAll(0, seq);
@@ -102,6 +105,7 @@ public class NMCS {
                     seq.add(currentBestAction);
                 }
 
+                System.out.println(evaluated);
                 actions = customActionsSingle(actions, currentBestAction);
             }
 
@@ -111,50 +115,84 @@ public class NMCS {
     }
 
     public GeneratedLevel getLevel(ArrayList<Pair<GeneratedLevel.SpritePointData, String>> prev) {
-        GeneratedLevel toBeReturned = level.clone();
         for(int i = 0; i<prev.size(); i++){
             if (prev.get(i) != null){
-                toBeReturned.setPosition(prev.get(i).first, prev.get(i).second);
+                level.setPosition(prev.get(i).first, prev.get(i).second);
             }
         }
 
-        return toBeReturned;
+        return level;
+    }
+
+    public void resetLevel(ArrayList<Pair<GeneratedLevel.SpritePointData, String>> prev){
+        for(int i = 0; i<prev.size(); i++){
+            if (prev.get(i) != null){
+                level.clearPosition(prev.get(i).first);
+            }
+        }
+
+        level.resetCalculated();
     }
 
     private Double getValue(ArrayList<Pair<GeneratedLevel.SpritePointData, String>> seq) {
-        GeneratedLevel tmpLevel = level.clone();
+        getLevel(seq);
+        level.calculateSoftConstraints();
 
-        for(int i = 0; i < seq.size(); i++){
-            tmpLevel.setPosition(seq.get(i).first, seq.get(i).second);
-        }
-
-        tmpLevel.calculateSoftConstraints();
-
-        double softFitness = tmpLevel.getConstrainFitness();
+        double softFitness = level.getConstrainFitness();
         double fitness = 0;
         if (softFitness < 1){
+            resetLevel(seq);
             return softFitness*4;
         } else {
-            tmpLevel.calculateFitness(SharedData.EVALUATION_TIME);
-            return tmpLevel.getCombinedFitness()+(tmpLevel.getConstrainFitness()*7);
+            level.calculateFitness(SharedData.EVALUATION_TIME);
+            softFitness = level.getConstrainFitness();
+            fitness = level.getCombinedFitness();
+            resetLevel(seq);
+            System.out.println(".");
+            return fitness+(softFitness*7);
         }
     }
 
     private Double getSoftValue(ArrayList<Pair<GeneratedLevel.SpritePointData, String>> seq) {
-        GeneratedLevel tmpLevel = level.clone();
+        getLevel(seq);
 
-        for(int i = 0; i < seq.size(); i++){
-            tmpLevel.setPosition(seq.get(i).first, seq.get(i).second);
+        level.calculateSoftConstraints();
+        double result = level.getConstrainFitness();
+        resetLevel(seq);
+        return result;
+    }
+
+    private Double getEvalValue(ArrayList<Pair<GeneratedLevel.SpritePointData, String>> actions, ArrayList<Pair<GeneratedLevel.SpritePointData, String>> seq){
+        getLevel(seq);
+        eval.calcOccurances(level);
+        double value = eval.validateTerminationConditions();
+
+        if(eval.clustedSolid){
+            double value2 = level.wallsClustered(SharedData.gameAnalyzer.getSolidSprites().get(0));
+            value = (value + value2);
         }
 
-        tmpLevel.calculateSoftConstraints();
-        return tmpLevel.getConstrainFitness();
+        double currentCoverage = (possiblePositions - (actions.size() / allSprites.size())) / possiblePositions;
+
+        if(currentCoverage > SharedData.MIN_COVER_PERCENTAGE && currentCoverage < SharedData.MAX_COVER_PERCENTAGE){
+            value = (value +1);
+        } else {
+
+        }
+
+        level.calculateSoftConstraints();
+        value = value+level.getConstrainFitness();
+
+        value = value/4;
+
+        resetLevel(seq);
+        return value;
     }
 
     private boolean isTerminal(ArrayList<Pair<GeneratedLevel.SpritePointData, String>> actions, ArrayList<Pair<GeneratedLevel.SpritePointData, String>> seq) {
         double currentCoverage = (possiblePositions - (actions.size() / allSprites.size())) / possiblePositions;
         //System.out.println((currentCoverage > SharedData.MAX_COVER_PERCENTAGE) + " " +  (getSoftValue(seq) >= 1) + " "+ seq.size());
-        return ((currentCoverage > SharedData.MAX_COVER_PERCENTAGE) || (getSoftValue(seq) >= 1));
+        return ((currentCoverage > SharedData.MAX_COVER_PERCENTAGE) || (getEvalValue(actions, seq) >= 1));
     }
 
     private ArrayList<Pair<GeneratedLevel.SpritePointData, String>> customActionsList(ArrayList<Pair<GeneratedLevel.SpritePointData, String>> allActions, ArrayList<Pair<GeneratedLevel.SpritePointData, String>> prev){
@@ -188,4 +226,5 @@ public class NMCS {
         toBeDeleted = null;
         return reducedActions;
     }
+
 }

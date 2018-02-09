@@ -43,6 +43,8 @@ public class LevelGenerator extends AbstractLevelGenerator{
         height = (int)Math.min(height, SharedData.MAX_SIZE + size);
 
         NMCS search = new NMCS(width, height, true);
+        LevelEvaluationFunction eval = new LevelEvaluationFunction();
+        eval.generateEvaluationFunction();
 
 
         //some variables to make sure not getting out of time
@@ -51,7 +53,7 @@ public class LevelGenerator extends AbstractLevelGenerator{
         double totalTime = 0;
         int numberOfIterations = 0;
         Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>> result = null;
-        long endTimeMs = System.currentTimeMillis() + elapsedTimer.remainingTimeMillis() - 1000;
+        long endTimeMs = System.currentTimeMillis() + elapsedTimer.remainingTimeMillis() - 10000;
 
         System.out.println(numberOfIterations + " " + elapsedTimer.remainingTimeMillis() + " " + avgTime + " " + worstTime);
         while(elapsedTimer.remainingTimeMillis() > 2 * avgTime &&
@@ -81,6 +83,7 @@ public class LevelGenerator extends AbstractLevelGenerator{
         System.out.println(result.second);
 
         root = search.getLevel(result.second).getLevelMapping();
+        search.resetLevel(result.second);
         System.out.println("Done");
 
         return search.getLevel(result.second).getLevelString(root);
