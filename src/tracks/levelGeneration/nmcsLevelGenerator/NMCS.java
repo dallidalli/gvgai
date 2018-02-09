@@ -5,6 +5,7 @@ import tools.Pair;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.function.Supplier;
 
 public class NMCS {
 
@@ -56,7 +57,7 @@ public class NMCS {
         possiblePositions = counter;
     }
 
-    public Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>> selectAction(int level, ArrayList<Pair<GeneratedLevel.SpritePointData, String>> actions){
+    public Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>> selectAction(int level, ArrayList<Pair<GeneratedLevel.SpritePointData, String>> actions, Supplier<Boolean> isCanceled){
         if(level == 0){
         ArrayList<Pair<GeneratedLevel.SpritePointData, String>> seq = new ArrayList<>();
 
@@ -68,12 +69,12 @@ public class NMCS {
         }
         evaluated++;
         System.out.println(evaluated);
-        return new Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData,String>>>(getValue(seq), seq);
+        return new Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData,String>>>(getSoftValue(seq), seq);
     } else {
             ArrayList<Pair<GeneratedLevel.SpritePointData, String>> seq = new ArrayList<>();
             Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>> globalBestResult = new Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>>(Double.MIN_VALUE, null);
 
-            while (!isTerminal(actions, seq)){
+            while (!isTerminal(actions, seq) && !isCanceled.get()){
 
                 Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>> currentBestResult = new Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>>(Double.MIN_VALUE, null);
                 Pair<GeneratedLevel.SpritePointData, String> currentBestAction = null;
@@ -81,7 +82,7 @@ public class NMCS {
 
                 for(int i = 0; i < actions.size(); i++){
                     ArrayList<Pair<GeneratedLevel.SpritePointData, String>> newActions = customActionsSingle(actions, actions.get(i));
-                    Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>> result = selectAction(level-1, newActions);
+                    Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>> result = selectAction(level-1, newActions, isCanceled);
 
                     if (result.first >= currentBestResult.first){
                         currentBestAction = actions.get(i);
