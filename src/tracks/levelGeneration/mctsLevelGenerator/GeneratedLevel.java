@@ -493,7 +493,7 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
         parameters.put("coverPercentage", coverPercentage);
         parameters.put("minCoverPercentage", SharedData.MIN_COVER_PERCENTAGE);
         parameters.put("maxCoverPercentage", SharedData.MAX_COVER_PERCENTAGE);
-        parameters.put("numOfObjects", calculateNumberOfObjects());
+        parameters.put("spriteOccurrences", calculateNumberOfObjects());
         parameters.put("gameAnalyzer", SharedData.gameAnalyzer);
         parameters.put("gameDescription", SharedData.gameDescription);
 
@@ -557,7 +557,7 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
             parameters.put("coverPercentage", coverPercentage);
             parameters.put("minCoverPercentage", SharedData.MIN_COVER_PERCENTAGE);
             parameters.put("maxCoverPercentage", SharedData.MAX_COVER_PERCENTAGE);
-            parameters.put("numOfObjects", calculateNumberOfObjects());
+            parameters.put("spriteOccurrences", calculateNumberOfObjects());
             parameters.put("gameAnalyzer", SharedData.gameAnalyzer);
             parameters.put("gameDescription", SharedData.gameDescription);
 

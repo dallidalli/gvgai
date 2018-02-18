@@ -1,9 +1,7 @@
 package tracks.levelGeneration.constraints;
 
 import tools.Pair;
-import tracks.levelGeneration.mctsLevelGenerator.GeneratedLevel;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -18,9 +16,9 @@ public class AccessibilityConstraint extends AbstractConstraint {
     public double checkConstraint() {
         ArrayList<Pair<Integer, Integer>> visited = new ArrayList<Pair<Integer, Integer>>();
         ArrayList<Pair<Integer, Integer>> next = new ArrayList<Pair<Integer, Integer>>();
-        next.addAll(getNeighbors(avatarPosition, visited));
+        next.addAll(getNeighbors(avatarPosition, visited, next));
         while(!next.isEmpty()){
-            next.addAll(getNeighbors(next.get(0), visited));
+            next.addAll(getNeighbors(next.get(0), visited, next));
             visited.add(next.remove(0));
         }
 
@@ -44,7 +42,7 @@ public class AccessibilityConstraint extends AbstractConstraint {
 
     }
 
-    private ArrayList<Pair<Integer, Integer>> getNeighbors(Pair<Integer, Integer> position, ArrayList<Pair<Integer, Integer>> visited) {
+    private ArrayList<Pair<Integer, Integer>> getNeighbors(Pair<Integer, Integer> position, ArrayList<Pair<Integer, Integer>> visited, ArrayList<Pair<Integer, Integer>> next) {
         int x = position.first;
         int y = position.second;
 
@@ -69,7 +67,7 @@ public class AccessibilityConstraint extends AbstractConstraint {
             if(level[y1][x1].size() > 0){
                 Pair<Integer, Integer> newPosition = new Pair<Integer, Integer>(x1,y1);
                 for (int i = 0; i < solidSprites.size(); i++){
-                    if(!level[y1][x1].contains(solidSprites.get(i)) && !visited.contains(newPosition)){
+                    if(!level[y1][x1].contains(solidSprites.get(i)) && !visited.contains(newPosition) && !next.contains(newPosition)){
                         result.add(new Pair<Integer, Integer>(x1, y1));
                     }
                 }
@@ -79,7 +77,7 @@ public class AccessibilityConstraint extends AbstractConstraint {
             if(level[y2][x2].size() > 0){
                 Pair<Integer, Integer> newPosition = new Pair<Integer, Integer>(x2,y2);
                 for (int i = 0; i < solidSprites.size(); i++){
-                    if(!level[y2][x2].contains(solidSprites.get(i)) && !visited.contains(newPosition)){
+                    if(!level[y2][x2].contains(solidSprites.get(i)) && !visited.contains(newPosition) && !next.contains(newPosition)){
                         result.add(new Pair<Integer, Integer>(x2, y2));
                     }
                 }
@@ -89,7 +87,7 @@ public class AccessibilityConstraint extends AbstractConstraint {
             if(level[y3][x3].size() > 0){
                 Pair<Integer, Integer> newPosition = new Pair<Integer, Integer>(x3,y3);
                 for (int i = 0; i < solidSprites.size(); i++){
-                    if(!level[y3][x3].contains(solidSprites.get(i)) && !visited.contains(newPosition)){
+                    if(!level[y3][x3].contains(solidSprites.get(i)) && !visited.contains(newPosition) && !next.contains(newPosition)){
                         result.add(new Pair<Integer, Integer>(x3, y3));
                     }
                 }
@@ -98,7 +96,7 @@ public class AccessibilityConstraint extends AbstractConstraint {
         if(x4 < level[y].length && x4 >= 0 && y4 < level.length && y4 >= 0){
             Pair<Integer, Integer> newPosition = new Pair<Integer, Integer>(x4,y4);
             for (int i = 0; i < solidSprites.size(); i++){
-                if(!level[y4][x4].contains(solidSprites.get(i)) && !visited.contains(newPosition)){
+                if(!level[y4][x4].contains(solidSprites.get(i)) && !visited.contains(newPosition) && !next.contains(newPosition)){
                     result.add(new Pair<Integer, Integer>(x4, y4));
                 }
             }

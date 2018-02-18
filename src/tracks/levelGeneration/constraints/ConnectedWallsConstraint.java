@@ -12,6 +12,11 @@ public class ConnectedWallsConstraint extends AbstractConstraint {
 
     @Override
     public double checkConstraint() {
+        if(solidSprite.equals("non-existent")){
+            return 1;
+        }
+
+
         for(int y = 0; y < level.length; y++){
             for(int x = 0; x < level[y].length; x++){
                 if(level[y][x].size() > 0){

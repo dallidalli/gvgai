@@ -8,7 +8,7 @@ public class AvatarNumberConstraint extends AbstractConstraint{
 	/**
 	 * hashmap contains the number of objects for each type
 	 */
-	public HashMap<String, Integer> numOfObjects;
+	public HashMap<String, Integer> spriteOccurrences;
 	/**
 	 * Object for game analyzer
 	 */
@@ -22,8 +22,8 @@ public class AvatarNumberConstraint extends AbstractConstraint{
 	public double checkConstraint() {
 		int totalAvatars = 0;
 		for(String avatar:gameAnalyzer.getAvatarSprites()){
-			if(numOfObjects.containsKey(avatar)){
-				totalAvatars += numOfObjects.get(avatar);
+			if(spriteOccurrences.containsKey(avatar)){
+				totalAvatars += spriteOccurrences.get(avatar);
 			}
 		}
 		

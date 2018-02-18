@@ -11,7 +11,7 @@ public class SpriteNumberConstraint extends AbstractConstraint{
 	/**
 	 * hashmap contains the number of objects for each type
 	 */
-	public HashMap<String, Integer> numOfObjects;
+	public HashMap<String, Integer> spriteOccurrences;
 	/**
 	 * Object for game analyzer
 	 */
@@ -27,7 +27,7 @@ public class SpriteNumberConstraint extends AbstractConstraint{
 		double totalNum = 0;
 		double acheivedNum = 0;
 		
-		for(Entry<String, Integer> n:numOfObjects.entrySet()){
+		for(Entry<String, Integer> n: spriteOccurrences.entrySet()){
 			if(gameAnalyzer.checkIfSpawned(n.getKey()) > 0){
 				totalNum += 1;
 				if(n.getValue() > 0){

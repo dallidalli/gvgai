@@ -5,11 +5,14 @@ import core.game.GameDescription;
 import core.game.StateObservation;
 import core.player.AbstractPlayer;
 import ontology.Types;
+import sun.security.provider.SHA;
 import tools.ElapsedCpuTimer;
 import tools.LevelMapping;
+import tools.Pair;
 import tools.StepController;
 import tracks.levelGeneration.constraints.CombinedConstraints;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -494,18 +497,66 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
     }
 
     public void calculateSoftConstraints(){
+        Pair<Integer, Integer> avatarPosition;
+
+        ArrayList<String> tmp = new ArrayList<String>();
+        for (GameDescription.SpriteData sprite:SharedData.gameDescription.getAvatar()) {
+            tmp.add(sprite.name);
+        }
+
+        ArrayList<SpritePointData> tmpdata = getPositions(tmp);
+
+        if(tmpdata.size() > 0){
+            avatarPosition = new Pair<Integer, Integer>(tmpdata.get(0).x, tmpdata.get(0).y);
+        } else {
+            avatarPosition = new Pair<Integer, Integer>(1,1);
+        }
+
+
+        HashMap<String, Integer> spriteOccurrences = calculateNumberOfObjects();
+        ArrayList<String> solidSprites = SharedData.gameAnalyzer.getSolidSprites();
+        String solidSprite;
+
+        if(solidSprites.size() > 0){
+            solidSprite = solidSprites.get(0);
+        } else {
+            solidSprite = "non-existent";
+        }
+
+        ArrayList<GameDescription.TerminationData> terminationData = SharedData.gameDescription.getTerminationConditions();
+
+        ArrayList<Pair<Integer, Integer>> listOfGoals = new ArrayList<Pair<Integer, Integer>>();
+
+        ArrayList<SpritePointData> tmpPos = getPositions(SharedData.gameAnalyzer.getGoalSprites());
+        for (SpritePointData pos:tmpPos) {
+            listOfGoals.add(new Pair<Integer, Integer>(pos.x, pos.y));
+        }
+
+        ArrayList<String> avatarSprites = SharedData.gameAnalyzer.getAvatarSprites();
+
+
         double coverPercentage = getCoverPercentage();
 
         HashMap<String, Object> parameters = new HashMap<String, Object>();
+        parameters.put("avatarPosition", avatarPosition);
+        parameters.put("level", level);
+        parameters.put("spriteOccurrences", spriteOccurrences);
+        parameters.put("solidSprites", solidSprites);
+        parameters.put("solidSprite", solidSprite);
         parameters.put("coverPercentage", coverPercentage);
         parameters.put("minCoverPercentage", SharedData.MIN_COVER_PERCENTAGE);
         parameters.put("maxCoverPercentage", SharedData.MAX_COVER_PERCENTAGE);
-        parameters.put("numOfObjects", calculateNumberOfObjects());
         parameters.put("gameAnalyzer", SharedData.gameAnalyzer);
-        parameters.put("gameDescription", SharedData.gameDescription);
+        parameters.put("terminationConditions", terminationData);
+        parameters.put("width", level[0].length);
+        parameters.put("height", level.length);
+        parameters.put("listOfGoals", listOfGoals);
+        parameters.put("avatarSpritesIn", avatarSprites);
+        parameters.put("allSprites", SharedData.gameDescription.getAllSpriteData());
+
 
         CombinedConstraints constraint = new CombinedConstraints();
-        constraint.addConstraints(new String[]{"CoverPercentageConstraint", "SpriteNumberConstraint", "GoalConstraint", "AvatarNumberConstraint"});
+        constraint.addConstraints(new String[]{"AccessibilityConstraint", "AvatarNumberConstraint", "ConnectedWallsConstraint", "CoverPercentageConstraint", "EndsInitiallyConstraint", "GoalDistanceConstraint", "SimplestAvatarConstraint", "SpriteNumberConstraint", "SpaceAroundAvatarConstraint"});
         constraint.setParameters(parameters);
         constrainFitness = constraint.checkConstraint();
     }
@@ -564,7 +615,7 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
             parameters.put("coverPercentage", coverPercentage);
             parameters.put("minCoverPercentage", SharedData.MIN_COVER_PERCENTAGE);
             parameters.put("maxCoverPercentage", SharedData.MAX_COVER_PERCENTAGE);
-            parameters.put("numOfObjects", calculateNumberOfObjects());
+            parameters.put("spriteOccurrences", calculateNumberOfObjects());
             parameters.put("gameAnalyzer", SharedData.gameAnalyzer);
             parameters.put("gameDescription", SharedData.gameDescription);
 

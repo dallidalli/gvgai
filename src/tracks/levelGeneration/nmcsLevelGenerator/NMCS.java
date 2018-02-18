@@ -164,27 +164,9 @@ public class NMCS {
 
     private Double getEvalValue(ArrayList<Pair<GeneratedLevel.SpritePointData, String>> actions, ArrayList<Pair<GeneratedLevel.SpritePointData, String>> seq){
         getLevel(seq);
-        eval.calcOccurances(level);
-        double value = eval.validateTerminationConditions();
-
-        if(eval.clustedSolid){
-            double value2 = level.wallsClustered(SharedData.gameAnalyzer.getSolidSprites().get(0));
-            value = (value + value2);
-        }
-
-        double currentCoverage = (possiblePositions - (actions.size() / allSprites.size())) / possiblePositions;
-
-        if(currentCoverage > SharedData.MIN_COVER_PERCENTAGE && currentCoverage < SharedData.MAX_COVER_PERCENTAGE){
-            value = (value +1);
-        } else {
-
-        }
-
+        double value = 0;
         level.calculateSoftConstraints();
-        value = value+level.getConstrainFitness();
-
-        value = value/4;
-
+        value = level.getConstrainFitness();
         resetLevel(seq);
         return value;
     }
