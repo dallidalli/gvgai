@@ -14,6 +14,10 @@ public class AccessibilityConstraint extends AbstractConstraint {
 
     @Override
     public double checkConstraint() {
+        if(avatarPosition.first == -1 && avatarPosition.second == -1){
+            return 0;
+        }
+
         ArrayList<Pair<Integer, Integer>> visited = new ArrayList<Pair<Integer, Integer>>();
         ArrayList<Pair<Integer, Integer>> next = new ArrayList<Pair<Integer, Integer>>();
         next.addAll(getNeighbors(avatarPosition, visited, next));

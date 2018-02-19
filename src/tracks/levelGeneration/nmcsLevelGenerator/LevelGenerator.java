@@ -43,8 +43,9 @@ public class LevelGenerator extends AbstractLevelGenerator{
         height = (int)Math.min(height, SharedData.MAX_SIZE + size);
 
         NMCS search = new NMCS(width, height, true);
-        LevelEvaluationFunction eval = new LevelEvaluationFunction();
-        eval.generateEvaluationFunction();
+        search.level.calculateSoftConstraints(true);
+        //LevelEvaluationFunction eval = new LevelEvaluationFunction();
+        //eval.generateEvaluationFunction();
 
 
         //some variables to make sure not getting out of time
@@ -71,8 +72,8 @@ public class LevelGenerator extends AbstractLevelGenerator{
                 }
             }
 
-            System.out.println(result.first);
-            System.out.println(result.second);
+            System.out.println(tmp.first);
+            System.out.println(tmp.second);
             search.getLevel(tmp.second, true);
             search.resetLevel(tmp.second);
 

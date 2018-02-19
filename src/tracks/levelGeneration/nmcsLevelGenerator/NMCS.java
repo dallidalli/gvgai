@@ -78,8 +78,9 @@ public class NMCS {
     } else {
             ArrayList<Pair<GeneratedLevel.SpritePointData, String>> seq = new ArrayList<>();
             Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>> globalBestResult = new Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>>(Double.MIN_VALUE, null);
+            double fitness = (getEvalValue(seq));
 
-            while (!isTerminal(actions, seq, 0) && !isCanceled.get()){
+            while (!isTerminal(actions, seq, fitness) && !isCanceled.get()){
 
                 Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>> currentBestResult = new Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>>(Double.MIN_VALUE, null);
                 Pair<GeneratedLevel.SpritePointData, String> currentBestAction = null;
@@ -98,7 +99,7 @@ public class NMCS {
 
 
 
-                if(currentBestResult.first > globalBestResult.first){
+                if(currentBestResult.first >= globalBestResult.first){
                     seq.add(currentBestAction);
                     globalBestResult = currentBestResult;
                     globalBestResult.second.addAll(0, seq);
@@ -108,6 +109,7 @@ public class NMCS {
                 }
 
                 System.out.println(evaluated);
+                fitness = (getEvalValue(seq));
                 actions = customActionsSingle(actions, currentBestAction);
             }
 

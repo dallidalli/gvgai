@@ -68,6 +68,9 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
         this.fitness = new ArrayList<Double>();
         this.calculated = false;
         this.stateObs = null;
+
+        System.out.println(SharedData.gameAnalyzer.getSolidSprites());
+        System.out.println(SharedData.gameDescription.getAvatar());
     }
 
 
@@ -509,7 +512,7 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
         if(tmpdata.size() > 0){
             avatarPosition = new Pair<Integer, Integer>(tmpdata.get(0).x, tmpdata.get(0).y);
         } else {
-            avatarPosition = new Pair<Integer, Integer>(1,1);
+            avatarPosition = new Pair<Integer, Integer>(-1,-1);
         }
 
 

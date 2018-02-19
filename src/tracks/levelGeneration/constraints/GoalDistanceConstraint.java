@@ -14,6 +14,11 @@ public class GoalDistanceConstraint extends AbstractConstraint{
 
     @Override
     public double checkConstraint() {
+        if(avatarPosition.first == -1 && avatarPosition.second == -1){
+            return 0;
+        }
+
+
         double maxDistance = new Point(0,0).distance(new Point(width-1, height-1));
 
         if(listOfGoals.size() == 0){
