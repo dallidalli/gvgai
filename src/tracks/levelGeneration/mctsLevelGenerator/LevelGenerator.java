@@ -43,17 +43,8 @@ public class LevelGenerator extends AbstractLevelGenerator{
         List<TreeNode> list = new LinkedList<TreeNode>();
         System.out.println("list: " + list);
 
-        ThreadGroup tg = new ThreadGroup("main");
-		//int np = Runtime.getRuntime().availableProcessors();
-        int np = 1;
-
-        for (int i = 0; i < np; i++){
-            TreeNode newNode = new TreeNode(width, height, true);
-            newNode.selectAction();
-            list.add(newNode);
-        }
-
-        System.out.println("Number of processes: " + np);
+        TreeNode newNode = new TreeNode(width, height, true);
+        list.add(newNode);
 
         //some variables to make sure not getting out of time
         double worstTime = SharedData.EVALUATION_TIME * 1;
@@ -66,11 +57,8 @@ public class LevelGenerator extends AbstractLevelGenerator{
                 elapsedTimer.remainingTimeMillis() > worstTime){
             ElapsedCpuTimer timer = new ElapsedCpuTimer();
 
-            if (list.size() > 1){
-                list.parallelStream().forEach((node) -> {node.selectAction();});
-            } else {
-                list.get(0).selectAction();
-            }
+            list.get(0).selectAction();
+
 
             numberOfIterations += 1;
             totalTime += timer.elapsedMillis();

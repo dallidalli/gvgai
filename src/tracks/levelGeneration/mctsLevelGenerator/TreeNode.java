@@ -78,21 +78,7 @@ public class TreeNode{
         if (children == null) {
             children = new TreeNode[actions.size()];
         }
-        /*
-        int selectedChild = SharedData.random.nextInt(actions.size());
-        ArrayList<Pair<GeneratedLevel.SpritePointData, String>> newActions = (ArrayList<Pair<GeneratedLevel.SpritePointData, String>>)(actions.clone());
-        newActions.remove(selectedChild);
-        children[selectedChild] = new TreeNode(currentLevel, newActions);
-
-
-        for (int i=0; i<actions.size(); i++) {
-            ArrayList<Pair<GeneratedLevel.SpritePointData, String>> newActions = (ArrayList<Pair<GeneratedLevel.SpritePointData, String>>)(actions.clone());
-            newActions.remove(i);
-            children[i] = new TreeNode(currentLevel, newActions);
-        }
-        */
-
-    }
+       }
 
     private TreeNode select(double totalVisits) {
         int selected = 0;
@@ -181,6 +167,13 @@ public class TreeNode{
         return children == null;
     }
 
+    private boolean isTerminal(double fitness) {
+        double currentCoverage = (possiblePositions - (actions.size() / allSprites.size())) / possiblePositions;
+
+        return ((currentCoverage > SharedData.MAX_COVER_PERCENTAGE) || (fitness >= 1));
+    }
+
+
     public double rollOut(TreeNode tn) {
         // ultimately a roll out will end in some value
         // assume for now that it ends in a win or a loss
@@ -216,7 +209,7 @@ public class TreeNode{
         double maxPositions = possiblePositions;
 
 
-        if (softConstraint < 1 && cur.actions.size()/amountSprites >= (maxPositions*(1- SharedData.MAX_COVER_PERCENTAGE))){
+        if (!cur.isTerminal(softConstraint)){
             if (cur.children == null) {
                 cur.children = new TreeNode[cur.actions.size()];
             }
@@ -235,34 +228,8 @@ public class TreeNode{
             }
 
             return rollOut(cur.children[selectedChild]);
-        } else if (softConstraint < 1) {
-            return cur.currentLevel.getConstrainFitness() * 4;
         } else {
-            double constraintFitness = 0;
-            double fitness = 0;
-
-            if(previousHardConstraints.containsKey(cur.currentLevel)){
-                constraintFitness = previousHardConstraints.get(cur.currentLevel);
-
-                if (previousEvaluations.containsKey(cur.currentLevel)){
-                    fitness = previousEvaluations.get(cur.currentLevel);
-                }
-            } else {
-                cur.currentLevel.calculateFitness(SharedData.EVALUATION_TIME);
-                constraintFitness = cur.currentLevel.getConstrainFitness();
-                previousHardConstraints.put(cur.currentLevel, constraintFitness);
-
-                if(constraintFitness < 1){
-                    //constraintFitness = constraintFitness;
-                } else {
-                    fitness = cur.currentLevel.getCombinedFitness();
-                    previousEvaluations.put(cur.currentLevel, fitness);
-                }
-            }
-
-            System.out.println("Fitness: " + (fitness + (constraintFitness*7)));
-
-            return (fitness + (constraintFitness*7));
+            return softConstraint;
         }
     }
 

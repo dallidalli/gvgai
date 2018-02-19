@@ -37,12 +37,6 @@ public class LevelEvaluationFunction {
 
     }
 
-    public void calcOccurances(GeneratedLevel level){
-        for (GameDescription.SpriteData sprite:SharedData.gameDescription.getAllSpriteData()) {
-            int amount = level.countSprite(sprite.name);
-            spriteOccurances.put(sprite.name, amount);
-        }
-    }
 
 
     public double validateTerminationConditions(){

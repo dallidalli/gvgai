@@ -62,6 +62,7 @@ public class LevelGenerator extends AbstractLevelGenerator{
 
 
             Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>> tmp = search.selectAction(1,search.getAllPossibleActions(), () -> {return System.currentTimeMillis() > endTimeMs;});
+
             if(result == null){
                 result = tmp;
             }else {
@@ -72,6 +73,10 @@ public class LevelGenerator extends AbstractLevelGenerator{
 
             System.out.println(result.first);
             System.out.println(result.second);
+            search.getLevel(tmp.second, true);
+            search.resetLevel(tmp.second);
+
+
 
             numberOfIterations += 1;
             totalTime += timer.elapsedMillis();
@@ -82,11 +87,11 @@ public class LevelGenerator extends AbstractLevelGenerator{
         System.out.println(result.first);
         System.out.println(result.second);
 
-        root = search.getLevel(result.second).getLevelMapping();
+        root = search.getLevel(result.second, true).getLevelMapping();
         search.resetLevel(result.second);
         System.out.println("Done");
 
-        return search.getLevel(result.second).getLevelString(root);
+        return search.getLevel(result.second, false).getLevelString(root);
     }
 
     /**

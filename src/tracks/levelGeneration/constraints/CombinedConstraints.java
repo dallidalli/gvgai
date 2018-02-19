@@ -65,4 +65,9 @@ public class CombinedConstraints extends AbstractConstraint{
 		return score / constraints.size();
 	}
 
+	public void listConstraints() {
+		for(AbstractConstraint c:constraints){
+			System.out.println(c.getClass() + ": "+ c.checkConstraint());
+		}
+	}
 }
