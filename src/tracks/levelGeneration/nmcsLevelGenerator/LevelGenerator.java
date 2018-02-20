@@ -54,7 +54,7 @@ public class LevelGenerator extends AbstractLevelGenerator{
         double totalTime = 0;
         int numberOfIterations = 0;
         Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>> result = null;
-        long endTimeMs = System.currentTimeMillis() + elapsedTimer.remainingTimeMillis() - 10000;
+        long endTimeMs = System.currentTimeMillis() + elapsedTimer.remainingTimeMillis();
 
         System.out.println(numberOfIterations + " " + elapsedTimer.remainingTimeMillis() + " " + avgTime + " " + worstTime);
         while(elapsedTimer.remainingTimeMillis() > 2 * avgTime &&

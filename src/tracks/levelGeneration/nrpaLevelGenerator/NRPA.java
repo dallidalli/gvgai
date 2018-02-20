@@ -4,8 +4,7 @@ import core.game.GameDescription;
 import tools.Pair;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 public class NRPA {
@@ -72,7 +71,7 @@ public class NRPA {
     }
 
     private void constructPolicies(int depth, ArrayList<Pair<GeneratedLevel.SpritePointData, String>> allPossibleActionsTmp){
-        PartitionIterable<ArrayList<Pair<GeneratedLevel.SpritePointData, String>>> partitions = new PartitionIterable<ArrayList<Pair<GeneratedLevel.SpritePointData, String>>>(Collections.singletonList(allPossibleActionsTmp), 2);
+
     }
 
 }

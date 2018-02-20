@@ -11,7 +11,7 @@ public class LevelGenerator extends AbstractLevelGenerator{
 
     private final Object bestLevel;
     private ArrayList<Double> bestFitness;
-    private TreeNode root;
+    private MCTS resultMCTS;
 
     public LevelGenerator(GameDescription game, ElapsedCpuTimer elapsedTimer){
         SharedData.random = new Random();
@@ -40,11 +40,11 @@ public class LevelGenerator extends AbstractLevelGenerator{
         width = (int)Math.min(width, SharedData.MAX_SIZE + size);
         height = (int)Math.min(height, SharedData.MAX_SIZE + size);
 
-        List<TreeNode> list = new LinkedList<TreeNode>();
+        List<MCTS> list = new LinkedList<MCTS>();
         System.out.println("list: " + list);
 
-        TreeNode newNode = new TreeNode(width, height, true);
-        list.add(newNode);
+        MCTS search = new MCTS(width, height, true);
+        list.add(search);
 
         //some variables to make sure not getting out of time
         double worstTime = SharedData.EVALUATION_TIME * 1;
@@ -70,16 +70,20 @@ public class LevelGenerator extends AbstractLevelGenerator{
         //tv.showTree("After " + numberOfIterations + " play outs");
         TreeNode best = list.get(0).getBest();
 
-        for (TreeNode node:list) {
-            TreeNode tmp = node.getBest();
+        MCTS bestSearch = null;
+
+        for (MCTS tmpSearch:list) {
+            TreeNode tmp = tmpSearch.getBest();
             if (tmp.getTotValue()/tmp.getnVisits() >= best.getTotValue()/best.getnVisits()){
                 best = tmp;
+                bestSearch = tmpSearch;
             }
         }
-        best.getLevel(best.currentSeq, true);
-        root = best;
+
+        bestSearch.getLevel(bestSearch.currentSeq, true);
+        resultMCTS = bestSearch;
         System.out.println("Done");
-        return best.getCurrentLevel().getLevelString(best.getCurrentLevel().getLevelMapping());
+        return bestSearch.getCurrentLevel().getLevelString(bestSearch.getCurrentLevel().getLevelMapping());
     }
 
     /**
@@ -89,7 +93,7 @@ public class LevelGenerator extends AbstractLevelGenerator{
 
     @Override
     public HashMap<Character, ArrayList<String>> getLevelMapping(){
-        return root.getBest().getCurrentLevel().getLevelMapping().getCharMapping();
+        return resultMCTS.getCurrentLevel().getLevelMapping().getCharMapping();
     }
 
 
