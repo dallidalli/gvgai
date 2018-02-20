@@ -10,17 +10,20 @@ public class TreeNode{
     public static ArrayList<String> allSprites = new ArrayList<String>();
     public static double possiblePositions = 0;
     public static LinkedList<TreeNode> visited = new LinkedList<TreeNode>();
-    public static HashMap<GeneratedLevel, Double> previousEvaluations = new HashMap<GeneratedLevel, Double>();
-    public static HashMap<GeneratedLevel, Double> previousSoftConstraints = new HashMap<GeneratedLevel, Double>();
-    public static HashMap<GeneratedLevel, Double> previousHardConstraints = new HashMap<GeneratedLevel, Double>();
+    public HashMap<GeneratedLevel, Double> previousEvaluations = new HashMap<GeneratedLevel, Double>();
+    public HashMap<GeneratedLevel, Double> previousSoftConstraints = new HashMap<GeneratedLevel, Double>();
+    public HashMap<GeneratedLevel, Double> previousHardConstraints = new HashMap<GeneratedLevel, Double>();
 
 
     private TreeNode[] children;
 
     private double nVisits, totValue;
-    private ArrayList<Pair<GeneratedLevel.SpritePointData, String>> actions = new ArrayList<Pair<GeneratedLevel.SpritePointData, String>>();
+    private Pair<GeneratedLevel.SpritePointData, String> selectedAction;
+    public static ArrayList<Pair<GeneratedLevel.SpritePointData, String>> actions = new ArrayList<Pair<GeneratedLevel.SpritePointData, String>>();
+    public static ArrayList<Pair<GeneratedLevel.SpritePointData, String>> workedActions = new ArrayList<Pair<GeneratedLevel.SpritePointData, String>>();
 
-    private GeneratedLevel currentLevel;
+    public static GeneratedLevel currentLevel;
+    public static ArrayList<Pair<GeneratedLevel.SpritePointData, String>> currentSeq = new ArrayList<Pair<GeneratedLevel.SpritePointData, String>>();
 
     public TreeNode(int width, int height, boolean empty) {
         currentLevel = new GeneratedLevel(width, height);
@@ -49,24 +52,24 @@ public class TreeNode{
         System.out.println("number of actions: " + actions.size());
     }
 
-    public TreeNode(GeneratedLevel parentLevel, ArrayList<Pair<GeneratedLevel.SpritePointData, String>> possibleActions, Pair<GeneratedLevel.SpritePointData, String> performedAction){
-        actions = possibleActions;
-        currentLevel = parentLevel.clone();
-        currentLevel.setPosition(performedAction.first,performedAction.second);
-        //System.out.println("number of actions: " + actions.size());
+    public TreeNode(Pair<GeneratedLevel.SpritePointData, String> performedAction){
+        selectedAction = performedAction;
     }
 
     public void selectAction() {
+        workedActions = (ArrayList<Pair<GeneratedLevel.SpritePointData, String>>) actions.clone();
         visited.clear();
+        currentSeq.clear();
+
         TreeNode cur = this;
         visited.add(cur);
         while (!cur.isLeaf()) {
             cur = cur.select(nVisits);
             visited.add(cur);
+            currentSeq.add(cur.selectedAction);
         }
-        cur.expand();
+        cur.expand(workedActions.size());
         TreeNode newNode = cur.select(nVisits);
-        //visited.add(newNode);
         double value = rollOut(newNode);
         for (TreeNode node : visited) {
             // would need extra logic for n-player game
@@ -74,9 +77,9 @@ public class TreeNode{
         }
     }
 
-    private void expand() {
+    private void expand(int size) {
         if (children == null) {
-            children = new TreeNode[actions.size()];
+            children = new TreeNode[size];
         }
        }
 
@@ -106,18 +109,27 @@ public class TreeNode{
         }
 
         if (children[selected] == null){
-            ArrayList<Pair<GeneratedLevel.SpritePointData, String>> newActions = (ArrayList<Pair<GeneratedLevel.SpritePointData, String>>)(actions.clone());
-            ArrayList<Pair<GeneratedLevel.SpritePointData, String>> toBeDeleted = new ArrayList<Pair<GeneratedLevel.SpritePointData, String>>();
-            for (Pair<GeneratedLevel.SpritePointData, String> action:newActions) {
-                if(action.first.x == newActions.get(selected).first.x && action.first.y == newActions.get(selected).first.y){
-                    toBeDeleted.add(action);
-                }
-            }
-            newActions.removeAll(toBeDeleted);
-            children[selected] = new TreeNode(currentLevel, newActions, actions.get(selected));
+            children[selected] = new TreeNode(workedActions.get(selected));
         }
 
+        workedActions = customActionsSingle(workedActions, workedActions.get(selected));
+
         return children[selected];
+    }
+
+    private ArrayList<Pair<GeneratedLevel.SpritePointData, String>> customActionsSingle(ArrayList<Pair<GeneratedLevel.SpritePointData, String>> allActions, Pair<GeneratedLevel.SpritePointData, String> prev) {
+        ArrayList<Pair<GeneratedLevel.SpritePointData, String>> reducedActions = (ArrayList<Pair<GeneratedLevel.SpritePointData, String>>) allActions.clone();
+        ArrayList<Pair<GeneratedLevel.SpritePointData, String>> toBeDeleted = new ArrayList<Pair<GeneratedLevel.SpritePointData, String>>();
+
+        for (Pair<GeneratedLevel.SpritePointData, String> action : reducedActions) {
+            if (prev.first.x == action.first.x && prev.first.y == action.first.y) {
+                toBeDeleted.add(action);
+            }
+        }
+
+        reducedActions.removeAll(toBeDeleted);
+        toBeDeleted = null;
+        return reducedActions;
     }
 
     private void calcActions(){
@@ -132,6 +144,7 @@ public class TreeNode{
     }
 
     public TreeNode getBest(){
+        currentSeq.clear();
         TreeNode cur = this;
 
         while(!cur.isLeaf()){
@@ -158,6 +171,7 @@ public class TreeNode{
                 }
             }
             cur = cur.children[selected];
+            currentSeq.add(cur.selectedAction);
         }
 
         return cur;
@@ -168,69 +182,71 @@ public class TreeNode{
     }
 
     private boolean isTerminal(double fitness) {
-        double currentCoverage = (possiblePositions - (actions.size() / allSprites.size())) / possiblePositions;
+        double currentCoverage = (possiblePositions - (workedActions.size() / allSprites.size())) / possiblePositions;
 
         return ((currentCoverage > SharedData.MAX_COVER_PERCENTAGE) || (fitness >= 1));
     }
 
 
     public double rollOut(TreeNode tn) {
-        // ultimately a roll out will end in some value
-        // assume for now that it ends in a win or a loss
-        // and just return this at random
+
         TreeNode cur = tn;
         visited.add(cur);
-        //System.out.println("number of actions: " + cur.actions.size() + " " + cur.getCurrentLevel());
-        /*double currentCoverage = cur.currentLevel.getCoverPercentage();
-        double continueProbability = 1;
-
-        if(currentCoverage >= SharedData.MIN_COVER_PERCENTAGE && currentCoverage <= SharedData.MAX_COVER_PERCENTAGE){
-            continueProbability = SharedData.random.nextDouble();
-        }
-
-        if(Math.abs(currentCoverage - SharedData.MAX_COVER_PERCENTAGE) < 0.05){
-            continueProbability = 0;
-        }
+        currentSeq.add(cur.selectedAction);
 
 
-        if(continueProbability > 1){*/
+        getLevel(currentSeq, false);
+        currentLevel.calculateSoftConstraints(false);
+        double softConstraint = currentLevel.getConstrainFitness();
+        resetLevel(currentSeq);
 
-        double softConstraint = 0;
-
-        if(previousSoftConstraints.containsKey(cur.currentLevel)){
-            softConstraint = previousSoftConstraints.get(cur.currentLevel);
-        } else {
-            cur.currentLevel.calculateSoftConstraints();
-            softConstraint = cur.currentLevel.getConstrainFitness();
-            previousSoftConstraints.put(cur.currentLevel, softConstraint);
-        }
-
-        double amountSprites = allSprites.size();
-        double maxPositions = possiblePositions;
-
-
-        if (!cur.isTerminal(softConstraint)){
+        if (!isTerminal(softConstraint)){
             if (cur.children == null) {
-                cur.children = new TreeNode[cur.actions.size()];
+                cur.children = new TreeNode[workedActions.size()];
             }
-            int selectedChild = SharedData.random.nextInt(cur.actions.size());
+            int selectedChild = SharedData.random.nextInt(workedActions.size());
 
             if (cur.children[selectedChild] == null){
-                ArrayList<Pair<GeneratedLevel.SpritePointData, String>> newActions = (ArrayList<Pair<GeneratedLevel.SpritePointData, String>>)(cur.actions.clone());
-                ArrayList<Pair<GeneratedLevel.SpritePointData, String>> toBeDeleted = new ArrayList<Pair<GeneratedLevel.SpritePointData, String>>();
-                for (Pair<GeneratedLevel.SpritePointData, String> action:newActions) {
-                    if(action.first.x == newActions.get(selectedChild).first.x && action.first.y == newActions.get(selectedChild).first.y){
-                        toBeDeleted.add(action);
-                    }
-                }
-                newActions.removeAll(toBeDeleted);
-                cur.children[selectedChild] = new TreeNode(cur.currentLevel, newActions, actions.get(selectedChild));
+                cur.children[selectedChild] = new TreeNode(workedActions.get(selectedChild));
             }
 
+            workedActions = customActionsSingle(workedActions, workedActions.get(selectedChild));
             return rollOut(cur.children[selectedChild]);
         } else {
             return softConstraint;
         }
+    }
+
+    public GeneratedLevel getLevel(ArrayList<Pair<GeneratedLevel.SpritePointData, String>> prev, boolean verbose) {
+        for (int i = 0; i < prev.size(); i++) {
+            if (prev.get(i) != null) {
+                currentLevel.setPosition(prev.get(i).first, prev.get(i).second);
+            }
+        }
+
+        if (verbose) {
+            currentLevel.calculateSoftConstraints(true);
+            System.out.println(currentLevel.getConstrainFitness());
+        }
+
+        return currentLevel;
+    }
+
+    public void resetLevel(ArrayList<Pair<GeneratedLevel.SpritePointData, String>> prev) {
+        for (int i = 0; i < prev.size(); i++) {
+            currentLevel.clearPosition(prev.get(i).first);
+        }
+
+        currentLevel.resetCalculated();
+    }
+
+    private Double getEvalValue(ArrayList<Pair<GeneratedLevel.SpritePointData, String>> seq) {
+        getLevel(seq, false);
+        double value = 0;
+        currentLevel.calculateSoftConstraints(false);
+        value = currentLevel.getConstrainFitness();
+        resetLevel(seq);
+        return value;
     }
 
     public void updateStats(double value) {

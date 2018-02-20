@@ -1,4 +1,4 @@
-package tracks.levelGeneration.nmcsLevelGenerator;
+package tracks.levelGeneration.nrpaLevelGenerator;
 
 import core.game.Event;
 import core.game.GameDescription;
@@ -154,8 +154,8 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
                         level[y][x].add(randomSolid);
                     }
                 }
-                }
             }
+        }
     }
 
 

@@ -62,7 +62,7 @@ public class LevelGenerator extends AbstractLevelGenerator{
             ElapsedCpuTimer timer = new ElapsedCpuTimer();
 
 
-            Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>> tmp = search.selectAction(1,search.getAllPossibleActions(), () -> {return System.currentTimeMillis() > endTimeMs;});
+            Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>> tmp = search.selectAction(1,search.getAllPossibleActions(),-1, () -> {return System.currentTimeMillis() > endTimeMs;});
 
             if(result == null){
                 result = tmp;

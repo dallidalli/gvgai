@@ -91,6 +91,15 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
         level[position.y][position.x].add(sprite);
     }
 
+    public void clearPosition(SpritePointData position){
+        level[position.y][position.x].clear();
+    }
+
+    public void resetCalculated(){
+        this.calculated = false;
+        this.constrainFitness = 0;
+    }
+
     /**
      * initialize the agents used during evaluating the level
      */
@@ -487,7 +496,7 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
         return i;
     }
 
-    public void calculateSoftConstraints(){
+    public void calculateSoftConstraints(boolean verbose){
         Pair<Integer, Integer> avatarPosition;
 
         ArrayList<String> tmp = new ArrayList<String>();
@@ -500,7 +509,7 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
         if(tmpdata.size() > 0){
             avatarPosition = new Pair<Integer, Integer>(tmpdata.get(0).x, tmpdata.get(0).y);
         } else {
-            avatarPosition = new Pair<Integer, Integer>(1,1);
+            avatarPosition = new Pair<Integer, Integer>(-1,-1);
         }
 
 
@@ -549,7 +558,14 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
         CombinedConstraints constraint = new CombinedConstraints();
         constraint.addConstraints(new String[]{"AccessibilityConstraint", "AvatarNumberConstraint", "ConnectedWallsConstraint", "CoverPercentageConstraint", "EndsInitiallyConstraint", "GoalDistanceConstraint", "SimplestAvatarConstraint", "SpriteNumberConstraint", "SpaceAroundAvatarConstraint"});
         constraint.setParameters(parameters);
+
+        if(verbose){
+            constraint.listConstraints();
+        }
+
         constrainFitness = constraint.checkConstraint();
+
+        constraint = null;
     }
 
     /**

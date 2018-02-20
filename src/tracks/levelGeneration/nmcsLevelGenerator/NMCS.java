@@ -15,18 +15,17 @@ public class NMCS {
     public int evaluated = 0;
     public LevelEvaluationFunction eval;
 
-    public NMCS(int width, int height, boolean empty){
+    public NMCS(int width, int height, boolean empty) {
 
 
         level = new GeneratedLevel(width, height);
 
-        if (empty){
+        if (empty) {
             level.InitializeEmpty();
         } else {
-            if(SharedData.CONSTRUCTIVE_INITIALIZATION){
+            if (SharedData.CONSTRUCTIVE_INITIALIZATION) {
                 level.InitializeConstructive();
-            }
-            else{
+            } else {
                 level.InitializeRandom();
             }
         }
@@ -50,47 +49,60 @@ public class NMCS {
         return allPossibleActions;
     }
 
-    private void calcActions(){
+    private void calcActions() {
         double counter = 0;
         for (GeneratedLevel.SpritePointData position : level.getFreePositions(allSprites)) {
             counter++;
-            for (String sprite : allSprites){
+            for (String sprite : allSprites) {
                 allPossibleActions.add(new Pair<GeneratedLevel.SpritePointData, String>(position, sprite));
             }
         }
         possiblePositions = counter;
     }
 
-    public Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>> selectAction(int level, ArrayList<Pair<GeneratedLevel.SpritePointData, String>> actions, Supplier<Boolean> isCanceled){
-        if(level == 0){
-        ArrayList<Pair<GeneratedLevel.SpritePointData, String>> seq = new ArrayList<>();
-        double fitness = (getEvalValue(seq));
+    public Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>> selectAction(int level, ArrayList<Pair<GeneratedLevel.SpritePointData, String>> actions, int selected, Supplier<Boolean> isCanceled) {
+        if (level == 0) {
+            ArrayList<Pair<GeneratedLevel.SpritePointData, String>> seq = new ArrayList<Pair<GeneratedLevel.SpritePointData, String>>();
 
-        while(!isTerminal(actions, seq, fitness)){
-            int selectedChild = SharedData.random.nextInt(actions.size());
-            seq.add(actions.get(selectedChild));
+            if(selected != -1){
+                seq.add(actions.get(selected));
+                actions = customActionsSingle(actions, actions.get(selected));
+            }
 
-            actions = customActionsSingle(actions, actions.get(selectedChild));
-            fitness = (getEvalValue(seq));
-        }
-        evaluated++;
-        return new Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData,String>>>(fitness, seq);
-    } else {
-            ArrayList<Pair<GeneratedLevel.SpritePointData, String>> seq = new ArrayList<>();
+            double fitness = getEvalValue(seq);
+
+            while (!isTerminal(actions, seq, fitness)) {
+                int selectedChild = SharedData.random.nextInt(actions.size());
+                seq.add(actions.get(selectedChild));
+
+                actions = customActionsSingle(actions, actions.get(selectedChild));
+                fitness = (getEvalValue(seq));
+            }
+            evaluated++;
+            return new Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>>(fitness, seq);
+        } else {
+            ArrayList<Pair<GeneratedLevel.SpritePointData, String>> seq = new ArrayList<Pair<GeneratedLevel.SpritePointData, String>>();
             Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>> globalBestResult = new Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>>(Double.MIN_VALUE, null);
-            double fitness = (getEvalValue(seq));
+            int counter = 0;
 
-            while (!isTerminal(actions, seq, fitness) && !isCanceled.get()){
+            if(selected != -1){
+                seq.add(actions.get(selected));
+                actions = customActionsSingle(actions, actions.get(selected));
+            }
+
+
+            double fitness = getEvalValue(seq);
+
+            while (!isTerminal(actions, seq, fitness) && !isCanceled.get()) {
 
                 Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>> currentBestResult = new Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>>(Double.MIN_VALUE, null);
                 Pair<GeneratedLevel.SpritePointData, String> currentBestAction = null;
 
 
-                for(int i = 0; i < actions.size(); i++){
-                    ArrayList<Pair<GeneratedLevel.SpritePointData, String>> newActions = customActionsSingle(actions, actions.get(i));
-                    Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>> result = selectAction(level-1, newActions, isCanceled);
+                for (int i = 0; i < actions.size(); i++) {
+                    Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>> result = selectAction(level - 1, actions, i, isCanceled);
 
-                    if (result.first >= currentBestResult.first){
+                    if (result.first >= currentBestResult.first) {
                         currentBestAction = actions.get(i);
                         currentBestResult = result;
                     }
@@ -98,34 +110,43 @@ public class NMCS {
                 }
 
 
-
-                if(currentBestResult.first >= globalBestResult.first){
+                if (currentBestResult.first >= globalBestResult.first) {
                     seq.add(currentBestAction);
                     globalBestResult = currentBestResult;
-                    globalBestResult.second.addAll(0, seq);
+                    counter = 0;
                 } else {
-                    currentBestAction = globalBestResult.second.get(seq.size());
+                    try {
+                        currentBestAction = globalBestResult.second.get(counter);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                     seq.add(currentBestAction);
                 }
 
                 System.out.println(evaluated);
+                counter++;
                 fitness = (getEvalValue(seq));
                 actions = customActionsSingle(actions, currentBestAction);
             }
 
+            if(fitness > globalBestResult.first){
+                System.out.println("meta");
+                return new Pair<Double, ArrayList<Pair<GeneratedLevel.SpritePointData, String>>>(fitness, seq);
+            }
+            System.out.println("nested");
             return globalBestResult;
         }
 
     }
 
     public GeneratedLevel getLevel(ArrayList<Pair<GeneratedLevel.SpritePointData, String>> prev, boolean verbose) {
-        for(int i = 0; i<prev.size(); i++){
-            if (prev.get(i) != null){
+        for (int i = 0; i < prev.size(); i++) {
+            if (prev.get(i) != null) {
                 level.setPosition(prev.get(i).first, prev.get(i).second);
             }
         }
 
-        if(verbose){
+        if (verbose) {
             level.calculateSoftConstraints(true);
             System.out.println(level.getConstrainFitness());
         }
@@ -133,15 +154,15 @@ public class NMCS {
         return level;
     }
 
-    public void resetLevel(ArrayList<Pair<GeneratedLevel.SpritePointData, String>> prev){
-        for(int i = 0; i<prev.size(); i++){
-                level.clearPosition(prev.get(i).first);
+    public void resetLevel(ArrayList<Pair<GeneratedLevel.SpritePointData, String>> prev) {
+        for (int i = 0; i < prev.size(); i++) {
+            level.clearPosition(prev.get(i).first);
         }
 
         level.resetCalculated();
     }
 
-    private Double getEvalValue(ArrayList<Pair<GeneratedLevel.SpritePointData, String>> seq){
+    private Double getEvalValue(ArrayList<Pair<GeneratedLevel.SpritePointData, String>> seq) {
         getLevel(seq, false);
         double value = 0;
         level.calculateSoftConstraints(false);
@@ -157,14 +178,14 @@ public class NMCS {
     }
 
 
-    private ArrayList<Pair<GeneratedLevel.SpritePointData, String>> customActionsSingle(ArrayList<Pair<GeneratedLevel.SpritePointData, String>> allActions, Pair<GeneratedLevel.SpritePointData, String> prev){
+    private ArrayList<Pair<GeneratedLevel.SpritePointData, String>> customActionsSingle(ArrayList<Pair<GeneratedLevel.SpritePointData, String>> allActions, Pair<GeneratedLevel.SpritePointData, String> prev) {
         ArrayList<Pair<GeneratedLevel.SpritePointData, String>> reducedActions = (ArrayList<Pair<GeneratedLevel.SpritePointData, String>>) allActions.clone();
         ArrayList<Pair<GeneratedLevel.SpritePointData, String>> toBeDeleted = new ArrayList<Pair<GeneratedLevel.SpritePointData, String>>();
 
-        for (Pair<GeneratedLevel.SpritePointData, String> action:reducedActions) {
-                if(prev.first.x == action.first.x && prev.first.y == action.first.y) {
-                    toBeDeleted.add(action);
-                }
+        for (Pair<GeneratedLevel.SpritePointData, String> action : reducedActions) {
+            if (prev.first.x == action.first.x && prev.first.y == action.first.y) {
+                toBeDeleted.add(action);
+            }
         }
 
         reducedActions.removeAll(toBeDeleted);

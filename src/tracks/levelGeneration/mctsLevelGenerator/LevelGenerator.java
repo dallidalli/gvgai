@@ -63,8 +63,8 @@ public class LevelGenerator extends AbstractLevelGenerator{
             numberOfIterations += 1;
             totalTime += timer.elapsedMillis();
             avgTime = totalTime / numberOfIterations;
-            System.out.println(numberOfIterations + " " + elapsedTimer.remainingTimeMillis() + " " + avgTime + " " + worstTime);
         }
+        System.out.println(numberOfIterations + " " + elapsedTimer.remainingTimeMillis() + " " + avgTime + " " + worstTime);
 
         //TreeView tv = new TreeView(root);
         //tv.showTree("After " + numberOfIterations + " play outs");
@@ -76,6 +76,7 @@ public class LevelGenerator extends AbstractLevelGenerator{
                 best = tmp;
             }
         }
+        best.getLevel(best.currentSeq, true);
         root = best;
         System.out.println("Done");
         return best.getCurrentLevel().getLevelString(best.getCurrentLevel().getLevelMapping());
