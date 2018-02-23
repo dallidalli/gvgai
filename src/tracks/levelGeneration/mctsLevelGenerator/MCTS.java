@@ -20,8 +20,6 @@ public class MCTS{
 
     public TreeNode root;
 
-    public MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Pair<Double, Double>> nodes = new MultiKeyHashMap<>();
-
     public MCTS(int width, int height, boolean empty) {
         currentLevel = new GeneratedLevel(width, height);
 
