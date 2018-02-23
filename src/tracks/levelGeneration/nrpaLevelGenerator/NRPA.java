@@ -28,7 +28,7 @@ public class NRPA {
     public int assumedDepth = 2;
     public int numberOfIterations = 100;
     public double alpha = 3;
-    public double exploration = 0.002;
+    public double exploration = 0.000; // 0.002
 
     public NRPA(int width, int height, boolean empty) {
 
@@ -284,19 +284,19 @@ public class NRPA {
             double fitness = 0;
             ArrayList<SpritePointData> actions = allPossibleActions;
 
-            while (!isTerminal(actions, seq, fitness)) {
+            while (!isTerminal(actions, fitness)) {
                 ArrayList<SpritePointData> candidates = getSuitableActions(seq, actions, currentPolicy);
                 int selectedChild = SharedData.random.nextInt(candidates.size());
                 seq.add(candidates.get(selectedChild));
 
-                actions = customActionsSingle(actions, candidates.get(selectedChild));
+                actions = customActionsSingleCalc(actions, candidates.get(selectedChild), selectedChild);
                 fitness = (getEvalValue(seq));
             }
             evaluated++;
             return new Pair<Double, ArrayList<SpritePointData>>(fitness, seq);
         } else {
             System.out.println(".");
-
+            currentPolicy = (MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Double>) currentPolicy.clone();
             Pair<Double, ArrayList<SpritePointData>> bestResult = new Pair<Double, ArrayList<SpritePointData>>(Double.MIN_VALUE, null);
             for (int i = 0; i < numberOfIterations; i++) {
 
@@ -369,6 +369,9 @@ public class NRPA {
         double max = Double.MIN_VALUE;
         double sum = 0;
 
+        ArrayList<ArrayList<SpritePointData>> sets = new ArrayList<>();
+        ArrayList<Double> sumOfSets = new ArrayList<>();
+
         for (SpritePointData action : actions) {
             double currentPolicyValue = 0;
 
@@ -379,6 +382,17 @@ public class NRPA {
             }
 
             double actualValue = Math.exp(currentPolicyValue);
+
+            if(sumOfSets.contains(actualValue)){
+                int index = sumOfSets.indexOf(actualValue);
+                sets.get(index).add(action);
+            } else {
+                sumOfSets.add(actualValue);
+                ArrayList tmp = new ArrayList<SpritePointData>();
+                tmp.add(action);
+                sets.add((ArrayList<SpritePointData>) tmp.clone());
+            }
+
             sum = sum + actualValue;
 
             if(actualValue < min){
@@ -406,6 +420,15 @@ public class NRPA {
             while(best.size() == 0){
                 double threshold = SharedData.random.nextDouble() * (sum);
                 double tmpSum = 0;
+
+                for(int i = 0; i < sumOfSets.size(); i++){
+                    tmpSum = tmpSum + sumOfSets.get(i)*sets.get(i).size();
+                    if (tmpSum >= threshold){
+                        return sets.get(i);
+                    }
+                }
+
+                tmpSum = 0;
 
                 for (SpritePointData action:actions) {
                     double currentPolicyValue = currentPolicy.get(tmpSequence, action);
@@ -475,7 +498,7 @@ public class NRPA {
         return value;
     }
 
-    private boolean isTerminal(ArrayList<SpritePointData> actions, ArrayList<SpritePointData> seq, double fitness) {
+    private boolean isTerminal(ArrayList<SpritePointData> actions, double fitness) {
         double currentCoverage = (possiblePositions - (actions.size() / allSprites.size())) / possiblePositions;
         //System.out.println((currentCoverage > SharedData.MAX_COVER_PERCENTAGE) + " " +  (getSoftValue(seq) >= 1) + " "+ seq.size());
         return ((currentCoverage > SharedData.MAX_COVER_PERCENTAGE) || fitness >= 1);

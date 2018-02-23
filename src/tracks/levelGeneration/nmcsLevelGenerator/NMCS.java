@@ -71,7 +71,7 @@ public class NMCS {
 
             double fitness = getEvalValue(seq);
 
-            while (!isTerminal(actions, seq, fitness)) {
+            while (!isTerminal(actions, fitness)) {
                 int selectedChild = SharedData.random.nextInt(actions.size());
                 seq.add(actions.get(selectedChild));
 
@@ -93,7 +93,7 @@ public class NMCS {
 
             double fitness = getEvalValue(seq);
 
-            while (!isTerminal(actions, seq, fitness) && !isCanceled.get()) {
+            while (!isTerminal(actions, fitness) && !isCanceled.get()) {
 
                 Pair<Double, ArrayList<SpritePointData>> currentBestResult = new Pair<Double, ArrayList<SpritePointData>>(Double.MIN_VALUE, null);
                 SpritePointData currentBestAction = null;
@@ -171,7 +171,7 @@ public class NMCS {
         return value;
     }
 
-    private boolean isTerminal(ArrayList<SpritePointData> actions, ArrayList<SpritePointData> seq, double fitness) {
+    private boolean isTerminal(ArrayList<SpritePointData> actions, double fitness) {
         double currentCoverage = (possiblePositions - (actions.size() / allSprites.size())) / possiblePositions;
         //System.out.println((currentCoverage > SharedData.MAX_COVER_PERCENTAGE) + " " +  (getSoftValue(seq) >= 1) + " "+ seq.size());
         return ((currentCoverage > SharedData.MAX_COVER_PERCENTAGE) || fitness >= 1);
