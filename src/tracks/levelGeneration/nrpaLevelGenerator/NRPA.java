@@ -79,35 +79,6 @@ public class NRPA {
         return allPossibleActions;
     }
 
-    private ArrayList<SpritePointData> customActionsSingleNoClone(ArrayList<SpritePointData> allActions, SpritePointData prev) {
-        ArrayList<SpritePointData> toBeDeleted = new ArrayList<SpritePointData>();
-
-        for (SpritePointData action : allActions) {
-            if (action.sameCoordinate(prev)) {
-                toBeDeleted.add(action);
-            }
-        }
-
-        allActions.removeAll(toBeDeleted);
-        toBeDeleted = null;
-        return allActions;
-    }
-
-    private ArrayList<SpritePointData> customActionsSingle(ArrayList<SpritePointData> allActions, SpritePointData prev) {
-        ArrayList<SpritePointData> reducedActions = (ArrayList<SpritePointData>) allActions.clone();
-        ArrayList<SpritePointData> toBeDeleted = new ArrayList<>();
-
-        for (SpritePointData action : reducedActions) {
-            if (action.sameCoordinate(prev)) {
-                toBeDeleted.add(action);
-            }
-        }
-
-        reducedActions.removeAll(toBeDeleted);
-        toBeDeleted = null;
-        return reducedActions;
-    }
-
     private ArrayList<SpritePointData> customActionsSingleCalc(ArrayList<SpritePointData> allActions, SpritePointData prev, int indexKnown) {
         int index;
 
@@ -133,149 +104,6 @@ public class NRPA {
         return reducedActions;
     }
 
-    private ArrayList<SpritePointData> customActions(ArrayList<SpritePointData> allActions, ArrayList<SpritePointData> prev) {
-        ArrayList<SpritePointData> reducedActions = (ArrayList<SpritePointData>) allActions.clone();
-        ArrayList<SpritePointData> toBeDeleted = new ArrayList<>();
-
-        for (SpritePointData action : reducedActions) {
-            for (SpritePointData prevAction : prev) {
-                if (action.sameCoordinate(prevAction)) {
-                    toBeDeleted.add(action);
-                }
-            }
-
-        }
-
-        reducedActions.removeAll(toBeDeleted);
-        toBeDeleted = null;
-        return reducedActions;
-    }
-
-    private void generateTable(double initValue) {
-        ArrayList<SpritePointData> empty = new ArrayList<>();
-
-        for (SpritePointData action : allPossibleActions) {
-            policy.put(empty, action, initValue);
-        }
-
-        for (ArrayList<SpritePointData> state : generatedSequences) {
-            ArrayList<SpritePointData> tmpActions = customActions(allPossibleActions, state);
-
-
-            for (SpritePointData action : tmpActions) {
-                policy.put(state, action, initValue);            }
-
-        }
-    }
-
-    private void generateTableFromMap(double initValue) {
-        ArrayList<SpritePointData> empty = new ArrayList<>();
-
-        for (SpritePointData action : allPossibleActions) {
-            policy.put(empty, action, initValue);        }
-
-        tmpMap.keySet().stream().forEach(key -> {
-            ArrayList<SpritePointData> tmpActions = customActions(allPossibleActions, (ArrayList<SpritePointData>) key);
-
-            tmpActions.stream().parallel().forEach(action -> {
-
-                policy.put((ArrayList<SpritePointData>) key, action, initValue);            });
-
-        });
-
-    }
-
-    private void addSequence(ArrayList<SpritePointData> possibleActions, ArrayList<SpritePointData> currentSequence) {
-
-        possibleActions.stream().parallel().forEach(action -> {
-            ArrayList<SpritePointData> tmp = (ArrayList<SpritePointData>) currentSequence.clone();
-            SpritePointData currentAction = action;
-
-            tmp.add(currentAction);
-            Collections.sort(tmp);
-
-            if (!tmpMap.containsKey(tmp)) {
-                ArrayList<SpritePointData> current = new ArrayList<SpritePointData>(tmp);
-                tmpMap.put(current, 0);
-
-                ArrayList<SpritePointData> newActions = customActionsSingleCalc(possibleActions, currentAction, -1);
-                if (newActions.size() > (allPossibleActions.size() - assumedDepth*numberOfSprites)) {
-                    addSequence(newActions, current);
-                }
-
-            }
-
-        });
-
-        System.out.println(tmpMap.size());
-    }
-
-    private void addSequence2(ArrayList<SpritePointData> possibleActions, ArrayList<SpritePointData> currentSequence) {
-        int currentDepth = 1;
-        int createdLastLevel = 0;
-
-            for(int i = 0; i< possibleActions.size(); i++){
-                ArrayList tmp = new ArrayList();
-                tmp.add(possibleActions.get(i));
-                generatedSequences.add(new ArrayList<SpritePointData>(tmp));
-            }
-
-        System.out.println(generatedSequences.size());
-
-        while(currentDepth < assumedDepth) {
-            int currentSize = generatedSequences.size();
-            int currentCandidates = createdLastLevel;
-            createdLastLevel = 0;
-
-            for (int i = 0; i < possibleActions.size(); i++) {
-                for (int n = currentCandidates; n < currentSize; n++) {
-
-                    ArrayList<SpritePointData> cur = (ArrayList<SpritePointData>) generatedSequences.get(n).clone();
-                    SpritePointData currentAction = possibleActions.get(i);
-
-                    boolean valid = true;
-
-                    if (cur.contains(currentAction)) {
-                        valid = false;
-                        continue;
-                    }
-
-                    cur.add(currentAction);
-
-                    for (SpritePointData data1 : cur) {
-
-                        if (!valid) {
-                            break;
-                        }
-
-
-                        for (SpritePointData data2 : cur) {
-
-                            if (!valid) {
-                                break;
-                            }
-
-                            if (!data1.equals(data2)) {
-                                if (data1.sameCoordinate(data2)) {
-                                    valid = false;
-                                }
-                            }
-                        }
-                    }
-
-                    if (valid) {
-                        Collections.sort(cur);
-                        if (!generatedSequences.contains(cur)){
-                            createdLastLevel++;
-                            System.out.println(generatedSequences.size());
-                            generatedSequences.add(new ArrayList<>(cur));
-                        }
-                    }
-                }
-            }
-            currentDepth++;
-        }
-    }
 
     public Pair<Double, ArrayList<SpritePointData>> selectAction(int level, MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Double> currentPolicy, Supplier<Boolean> isCanceled) {
 
@@ -295,7 +123,6 @@ public class NRPA {
             evaluated++;
             return new Pair<Double, ArrayList<SpritePointData>>(fitness, seq);
         } else {
-            System.out.println(".");
             currentPolicy = (MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Double>) currentPolicy.clone();
             Pair<Double, ArrayList<SpritePointData>> bestResult = new Pair<Double, ArrayList<SpritePointData>>(Double.MIN_VALUE, null);
             for (int i = 0; i < numberOfIterations; i++) {
@@ -305,7 +132,6 @@ public class NRPA {
                     Pair<Double, ArrayList<SpritePointData>> result = selectAction(level - 1, currentPolicy,isCanceled);
 
                     if (result.first >= bestResult.first) {
-                        System.out.println(result.first);
                         bestResult = result;
                         //policy = currentPolicy;
 
@@ -375,7 +201,7 @@ public class NRPA {
         for (SpritePointData action : actions) {
             double currentPolicyValue = 0;
 
-            if(currentPolicy.containsKey(tmpSequence, action)){
+            if (currentPolicy.containsKey(tmpSequence, action)) {
                 currentPolicyValue = currentPolicy.get(tmpSequence, action);
             } else {
                 currentPolicy.put(tmpSequence, new SpritePointData(action.name, action.x, action.y), currentPolicyValue);
@@ -383,7 +209,7 @@ public class NRPA {
 
             double actualValue = Math.exp(currentPolicyValue);
 
-            if(sumOfSets.contains(actualValue)){
+            if (sumOfSets.contains(actualValue)) {
                 int index = sumOfSets.indexOf(actualValue);
                 sets.get(index).add(action);
             } else {
@@ -395,75 +221,40 @@ public class NRPA {
 
             sum = sum + actualValue;
 
-            if(actualValue < min){
+            if (actualValue < min) {
                 min = actualValue;
             }
 
-            if(actualValue > max){
+            if (actualValue > max) {
                 max = actualValue;
             }
         }
 
         double explore = SharedData.random.nextDouble();
 
-        if(explore < exploration){
+        if (explore < exploration) {
             return actions;
         } else {
-            min = min / sum;
-            max = max / sum;
 
-            if(min == max){
+            if (min == max) {
                 best.addAll(actions);
                 return best;
             }
 
-            while(best.size() == 0){
-                double threshold = SharedData.random.nextDouble() * (sum);
-                double tmpSum = 0;
+            double threshold = SharedData.random.nextDouble() * (sum);
+            double tmpSum = 0;
 
-                for(int i = 0; i < sumOfSets.size(); i++){
-                    tmpSum = tmpSum + sumOfSets.get(i)*sets.get(i).size();
-                    if (tmpSum >= threshold){
-                        return sets.get(i);
-                    }
+            for (int i = 0; i < sumOfSets.size(); i++) {
+                tmpSum = tmpSum + sumOfSets.get(i) * sets.get(i).size();
+                if (tmpSum >= threshold) {
+                    return sets.get(i);
                 }
-
-                tmpSum = 0;
-
-                for (SpritePointData action:actions) {
-                    double currentPolicyValue = currentPolicy.get(tmpSequence, action);
-                    double actualValue = Math.exp(currentPolicyValue);
-
-                    tmpSum = tmpSum + actualValue;
-
-                    if (tmpSum >= threshold){
-                        best.add(action);
-                        break;
-                    }
-                }
-
-
-            /*
-            int randomValueI = SharedData.random.nextInt(actions.size());
-
-            double randomValueJ = SharedData.random.nextDouble() * max;
-
-            double currentPolicyValue = policy.get(tmpSequence, actions.get(randomValueI));
-
-            double actualValue = Math.exp(currentPolicyValue);
-
-                if (randomValueJ <= actualValue) {
-                    best.add(actions.get(randomValueI));
-                }*/
             }
 
 
         }
 
-
-
-
-        return best;
+        return actions;
     }
 
     public GeneratedLevel getLevel(ArrayList<SpritePointData> prev, boolean verbose) {

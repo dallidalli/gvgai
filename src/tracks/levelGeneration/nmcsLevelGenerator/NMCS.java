@@ -12,6 +12,7 @@ import java.util.function.Supplier;
 public class NMCS {
 
     public ArrayList<SpritePointData> allPossibleActions = new ArrayList<>();
+    public ArrayList<SpritePointData> allPossibleActionsWorked = new ArrayList<>();
     public GeneratedLevel level;
     public ArrayList<String> allSprites = new ArrayList<>();
     public double possiblePositions;
@@ -55,86 +56,78 @@ public class NMCS {
             for (String sprite : allSprites) {
                 SpritePointData tmp = new SpritePointData(sprite, position.x, position.y);
                 allPossibleActions.add(tmp);
+                allPossibleActionsWorked.add(tmp);
             }
         }
         possiblePositions = counter;
     }
 
-    public Pair<Double, ArrayList<SpritePointData>> selectAction(int level, ArrayList<SpritePointData> actions, int selected, Supplier<Boolean> isCanceled) {
-        if (level == 0) {
-            ArrayList<SpritePointData> seq = new ArrayList<SpritePointData>();
+    public void resetActions(){
+        allPossibleActionsWorked = new ArrayList<>(allPossibleActions);
+    }
 
-            if(selected != -1){
-                seq.add(actions.get(selected));
-                actions = customActionsSingle(actions, actions.get(selected));
+    public Pair<Double, ArrayList<SpritePointData>> selectAction(int level, SpritePointData selectedAction, Supplier<Boolean> isCanceled) {
+        resetActions();
+        int counter = 0;
+        ArrayList<SpritePointData> seq = new ArrayList<SpritePointData>();
+
+        if (level == 0) {
+
+            if(selectedAction != null){
+                seq.add(selectedAction);
+                allPossibleActionsWorked = customActionsSingleCalc(allPossibleActionsWorked, selectedAction, -1);
             }
 
             double fitness = getEvalValue(seq);
 
-            while (!isTerminal(actions, fitness)) {
-                int selectedChild = SharedData.random.nextInt(actions.size());
-                seq.add(actions.get(selectedChild));
+            while (!isTerminal(allPossibleActionsWorked, fitness)) {
+                int selectedChild = SharedData.random.nextInt(allPossibleActionsWorked.size());
+                seq.add(allPossibleActionsWorked.get(selectedChild));
 
-                actions = customActionsSingle(actions, actions.get(selectedChild));
+                allPossibleActionsWorked = customActionsSingleCalc(allPossibleActionsWorked, allPossibleActionsWorked.get(selectedChild), selectedChild);
                 fitness = (getEvalValue(seq));
             }
             evaluated++;
             return new Pair<Double, ArrayList<SpritePointData>>(fitness, seq);
         } else {
-            ArrayList<SpritePointData> seq = new ArrayList<SpritePointData>();
-            Pair<Double, ArrayList<SpritePointData>> globalBestResult = new Pair<Double, ArrayList<SpritePointData>>(Double.MIN_VALUE, null);
-            int counter = 0;
+            double bestValue = Double.MIN_VALUE;
 
-            if(selected != -1){
-                seq.add(actions.get(selected));
-                actions = customActionsSingle(actions, actions.get(selected));
+            boolean terminated = false;
+
+            if(selectedAction != null){
+                seq.add(selectedAction);
+                allPossibleActionsWorked = customActionsSingleCalc(allPossibleActionsWorked, selectedAction, -1);
             }
-
 
             double fitness = getEvalValue(seq);
 
-            while (!isTerminal(actions, fitness) && !isCanceled.get()) {
+            while (!isTerminal(allPossibleActionsWorked, fitness) && !isCanceled.get() && !terminated) {
 
-                Pair<Double, ArrayList<SpritePointData>> currentBestResult = new Pair<Double, ArrayList<SpritePointData>>(Double.MIN_VALUE, null);
-                SpritePointData currentBestAction = null;
-
-
-                for (int i = 0; i < actions.size(); i++) {
-                    Pair<Double, ArrayList<SpritePointData>> result = selectAction(level - 1, actions, i, isCanceled);
-
-                    if (result.first >= currentBestResult.first) {
-                        currentBestAction = actions.get(i);
-                        currentBestResult = result;
+                for (int i = 0; i < allPossibleActionsWorked.size(); i++) {
+                    ArrayList<SpritePointData> actionsBackup = new ArrayList<>(allPossibleActionsWorked);
+                    SpritePointData currentAction = allPossibleActionsWorked.get(i);
+                    Pair<Double, ArrayList<SpritePointData>> result = selectAction(level - 1, currentAction, isCanceled);
+                    allPossibleActionsWorked = actionsBackup;
+                    if (result.first >= bestValue) {
+                        bestValue = result.first;
+                        seq.clear();
+                        seq.addAll(result.second);
+                        counter = 0;
                     }
 
-                }
+                    fitness = (getEvalValue(seq));
 
-
-                if (currentBestResult.first >= globalBestResult.first) {
-                    seq.add(currentBestAction);
-                    globalBestResult = currentBestResult;
-                    counter = 0;
-                } else {
-                    try {
-                        currentBestAction = globalBestResult.second.get(counter);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                    if(seq.size() == counter){
+                        terminated = true;
+                        break;
                     }
-                    seq.add(currentBestAction);
+                    allPossibleActionsWorked = customActionsSingleCalc(allPossibleActionsWorked, seq.get(counter), -1);
+                    counter = counter + 1;
                 }
 
-                System.out.println(evaluated);
-                counter++;
-                fitness = (getEvalValue(seq));
-                actions = customActionsSingle(actions, currentBestAction);
             }
 
-            if(fitness > globalBestResult.first){
-                System.out.println("meta");
-                return new Pair<Double, ArrayList<SpritePointData>>(fitness, seq);
-            }
-            System.out.println("nested");
-            return globalBestResult;
+            return new Pair<Double, ArrayList<SpritePointData>>(bestValue, seq);
         }
 
     }
@@ -177,20 +170,29 @@ public class NMCS {
         return ((currentCoverage > SharedData.MAX_COVER_PERCENTAGE) || fitness >= 1);
     }
 
+    private ArrayList<SpritePointData> customActionsSingleCalc(ArrayList<SpritePointData> allActions, SpritePointData prev, int indexKnown) {
+        int index;
 
-    private ArrayList<SpritePointData> customActionsSingle(ArrayList<SpritePointData> allActions, SpritePointData prev) {
-        ArrayList<SpritePointData> reducedActions = (ArrayList<SpritePointData>) allActions.clone();
-        ArrayList<SpritePointData> toBeDeleted = new ArrayList<SpritePointData>();
-
-        for (SpritePointData action : reducedActions) {
-            if (prev.sameCoordinate(action)) {
-                toBeDeleted.add(action);
-            }
+        if(indexKnown >= 0){
+            index = indexKnown;
+        } else {
+            index = allActions.indexOf(prev);
         }
 
-        reducedActions.removeAll(toBeDeleted);
+
+        int start = (int) (Math.floor(index / allSprites.size())*allSprites.size());
+        int end = (int) (start+allSprites.size());
+
+        ArrayList<SpritePointData> toBeDeleted = new ArrayList<>();
+
+        for (int i = start; i < end; i++) {
+            toBeDeleted.add(allActions.get(i));
+        }
+
+        allActions.removeAll(toBeDeleted);
         toBeDeleted = null;
-        return reducedActions;
+        return allActions;
     }
+
 
 }

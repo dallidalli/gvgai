@@ -37,8 +37,8 @@ public class SpaceAroundAvatarConstraint extends AbstractConstraint {
         next.addAll(tmp2);
         */
 
-        int countPos = 0;
-        int freePos = 0;
+        double countPos = 0;
+        double freePos = 0;
         while (next.size() > 0) {
             countPos++;
             Pair<Integer, Integer> cur = next.remove(0);

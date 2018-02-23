@@ -558,7 +558,7 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
 
 
         CombinedConstraints constraint = new CombinedConstraints();
-        constraint.addConstraints(new String[]{"AccessibilityConstraint", "AvatarNumberConstraint", "ConnectedWallsConstraint", "CoverPercentageConstraint", "EndsInitiallyConstraint", "GoalDistanceConstraint", "SimplestAvatarConstraint", "SpriteNumberConstraint", "SpaceAroundAvatarConstraint"});
+        constraint.addConstraints(new String[]{"AccessibilityConstraint", "AvatarNumberConstraint", "ConnectedWallsConstraint", "CoverPercentageConstraint", "EndsInitiallyConstraint", "GoalDistanceConstraint", "SimplestAvatarConstraint", "SpriteNumberConstraint", "SpaceAroundAvatarConstraint", "SymmetryConstraint"});
         constraint.setParameters(parameters);
 
         if(verbose){

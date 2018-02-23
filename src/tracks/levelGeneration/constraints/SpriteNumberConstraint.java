@@ -25,18 +25,18 @@ public class SpriteNumberConstraint extends AbstractConstraint{
 	@Override
 	public double checkConstraint() {
 		double totalNum = 0;
-		double acheivedNum = 0;
+		double achievedNum = 0;
 		
 		for(Entry<String, Integer> n: spriteOccurrences.entrySet()){
 			if(gameAnalyzer.checkIfSpawned(n.getKey()) > 0){
 				totalNum += 1;
 				if(n.getValue() > 0){
-					acheivedNum += 1;
+					achievedNum += 1;
 				}
 			}
 		}
 		
-		return acheivedNum / totalNum;
+		return achievedNum / totalNum;
 	}
 
 }

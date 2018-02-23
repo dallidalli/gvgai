@@ -39,7 +39,7 @@ public class AccessibilityConstraint extends AbstractConstraint {
         if(diff < 0){
             return 0;
         } else if (diff > 0){
-            return (1/diff);
+            return visited.size()/availableRegion;
         } else {
             return 1;
         }

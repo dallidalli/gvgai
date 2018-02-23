@@ -13,7 +13,7 @@ public class TestLevelGeneration {
 		String constructiveLevelGenerator = "tracks.levelGeneration.constructiveLevelGenerator.LevelGenerator";
 		String mctsLevelGenerator = "tracks.levelGeneration.mctsLevelGenerator.LevelGenerator";
 		String nmcsLevelGenerator = "tracks.levelGeneration.nmcsLevelGenerator.LevelGenerator";
-		String nrpaLevelGenertor = "tracks.levelGeneration.nrpaLevelGenerator.LevelGenerator";
+		String nrpaLevelGenerator = "tracks.levelGeneration.nrpaLevelGenerator.LevelGenerator";
 
 		String gamesPath = "examples/gridphysics/";
 		String physicsGamesPath = "examples/contphysics/";
@@ -54,7 +54,7 @@ public class TestLevelGeneration {
 
 
 		// 1. This starts a game, in a generated level created by a specific level generator
-		if(LevelGenMachine.generateOneLevel(game, nrpaLevelGenertor, recordLevelFile)){
+		if(LevelGenMachine.generateOneLevel(game, nrpaLevelGenerator, recordLevelFile)){
 		    LevelGenMachine.playOneGeneratedLevel(game, recordActionsFile, recordLevelFile, seed);
 		}
 

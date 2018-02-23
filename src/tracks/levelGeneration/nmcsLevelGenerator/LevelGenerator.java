@@ -64,7 +64,7 @@ public class LevelGenerator extends AbstractLevelGenerator{
             ElapsedCpuTimer timer = new ElapsedCpuTimer();
 
 
-            Pair<Double, ArrayList<SpritePointData>> tmp = search.selectAction(1,search.getAllPossibleActions(),-1, () -> {return System.currentTimeMillis() > endTimeMs;});
+            Pair<Double, ArrayList<SpritePointData>> tmp = search.selectAction(1,null, () -> {return System.currentTimeMillis() > endTimeMs;});
 
             if(result == null){
                 result = tmp;
@@ -74,17 +74,17 @@ public class LevelGenerator extends AbstractLevelGenerator{
                 }
             }
 
-            System.out.println(tmp.first);
-            System.out.println(tmp.second);
-            search.getLevel(tmp.second, true);
-            search.resetLevel(tmp.second);
-
-
 
             numberOfIterations += 1;
             totalTime += timer.elapsedMillis();
             avgTime = totalTime / numberOfIterations;
-            System.out.println(numberOfIterations + " " + elapsedTimer.remainingTimeMillis() + " " + avgTime + " " + worstTime);
+
+            if(numberOfIterations % 1000 == 0){
+                System.out.println(tmp.first);
+                search.getLevel(result.second, true).getLevelMapping();
+                search.resetLevel(result.second);
+                System.out.println(numberOfIterations + " " + elapsedTimer.remainingTimeMillis() + " " + avgTime + " " + worstTime);
+            }
         }
 
         System.out.println(result.first);

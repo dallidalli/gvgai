@@ -74,17 +74,20 @@ public class LevelGenerator extends AbstractLevelGenerator{
                 }
             }
 
-            System.out.println(tmp.first);
-            System.out.println(tmp.second);
-            search.getLevel(tmp.second, true);
-            search.resetLevel(tmp.second);
+
 
 
 
             numberOfIterations += 1;
             totalTime += timer.elapsedMillis();
             avgTime = totalTime / numberOfIterations;
-            System.out.println(numberOfIterations + " " + elapsedTimer.remainingTimeMillis() + " " + avgTime + " " + worstTime);
+
+            if(numberOfIterations % 10 == 0){
+                System.out.println(tmp.first);
+                search.getLevel(tmp.second, true).getLevelMapping();
+                search.resetLevel(tmp.second);
+                System.out.println(numberOfIterations + " " + elapsedTimer.remainingTimeMillis() + " " + avgTime + " " + worstTime);
+            }
         }
 
         System.out.println(result.first);

@@ -5,6 +5,7 @@ import core.generator.AbstractLevelGenerator;
 import tools.ElapsedCpuTimer;
 import tools.GameAnalyzer;
 import tracks.levelGeneration.commonClasses.SharedData;
+import tracks.levelGeneration.commonClasses.SpritePointData;
 
 import java.util.*;
 
@@ -58,33 +59,31 @@ public class LevelGenerator extends AbstractLevelGenerator{
                 elapsedTimer.remainingTimeMillis() > worstTime){
             ElapsedCpuTimer timer = new ElapsedCpuTimer();
 
-            list.get(0).selectAction();
+            list.get(0).selectActionMap();
 
 
             numberOfIterations += 1;
             totalTime += timer.elapsedMillis();
             avgTime = totalTime / numberOfIterations;
-        }
-        System.out.println(numberOfIterations + " " + elapsedTimer.remainingTimeMillis() + " " + avgTime + " " + worstTime);
 
-        //TreeView tv = new TreeView(root);
-        //tv.showTree("After " + numberOfIterations + " play outs");
-        TreeNode best = list.get(0).getBest();
-
-        MCTS bestSearch = null;
-
-        for (MCTS tmpSearch:list) {
-            TreeNode tmp = tmpSearch.getBest();
-            if (tmp.getTotValue()/tmp.getnVisits() >= best.getTotValue()/best.getnVisits()){
-                best = tmp;
-                bestSearch = tmpSearch;
+            if(numberOfIterations % 1000 == 0){
+                ArrayList<SpritePointData> best = list.get(0).getBestMap();
+                list.get(0).getLevel(best, true);
+                list.get(0).resetLevel(best);
+                System.out.println(numberOfIterations + " " + elapsedTimer.remainingTimeMillis() + " " + avgTime + " " + worstTime);
             }
         }
 
-        bestSearch.getLevel(bestSearch.currentSeq, true);
-        resultMCTS = bestSearch;
+        //TreeView tv = new TreeView(root);
+        //tv.showTree("After " + numberOfIterations + " play outs");
+        ArrayList<SpritePointData> best = list.get(0).getBestMap();
+
+
+
+        list.get(0).getLevel(best, true);
+        resultMCTS = list.get(0);
         System.out.println("Done");
-        return bestSearch.getCurrentLevel().getLevelString(bestSearch.getCurrentLevel().getLevelMapping());
+        return list.get(0).getCurrentLevel().getLevelString(list.get(0).getCurrentLevel().getLevelMapping());
     }
 
     /**
