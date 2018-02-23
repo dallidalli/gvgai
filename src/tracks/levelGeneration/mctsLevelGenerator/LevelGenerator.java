@@ -4,6 +4,7 @@ import core.game.GameDescription;
 import core.generator.AbstractLevelGenerator;
 import tools.ElapsedCpuTimer;
 import tools.GameAnalyzer;
+import tracks.levelGeneration.commonClasses.SharedData;
 
 import java.util.*;
 

@@ -1,18 +1,16 @@
-package tracks.levelGeneration.nrpaLevelGenerator;
+package tracks.levelGeneration.commonClasses;
 
 import core.game.Event;
 import core.game.GameDescription;
 import core.game.StateObservation;
 import core.player.AbstractPlayer;
 import ontology.Types;
-import sun.security.provider.SHA;
 import tools.ElapsedCpuTimer;
 import tools.LevelMapping;
 import tools.Pair;
 import tools.StepController;
 import tracks.levelGeneration.constraints.CombinedConstraints;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -694,49 +692,6 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
     }
 
     /**
-     * helpful data structure to hold information about certain points in the level
-     * @author AhmedKhalifa
-     */
-    public class SpritePointData implements Comparable{
-        public String name;
-        public int x;
-        public int y;
-
-        public SpritePointData(String name, int x, int y){
-            this.name = name;
-            this.x = x;
-            this.y = y;
-        }
-
-        @Override
-        public int compareTo(Object o) {
-            try{
-                SpritePointData p = (SpritePointData)o;
-
-                //if(p.first == this.first && p.second == this.second)
-                if(p.x == this.x && p.y == this.y && p.name.equals(this.name))
-                    return 0;
-
-            }catch(ClassCastException e)
-            {
-                //Whatever this is, this is not a Pair. So, not equal at all.
-                return -1;
-            }
-            return -1; //Not sure what would the order be, so always -1.
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            return (compareTo(obj)==0);
-        }
-
-        public boolean sameCoordinate(SpritePointData other){
-            return (other.x == this.x && other.y == this.y);
-        }
-    }
-
-
-    /**
      * Compare two chromosome with each other based on their
      * constrained fitness and normal fitness
      */
@@ -772,3 +727,4 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
 
 
 }
+

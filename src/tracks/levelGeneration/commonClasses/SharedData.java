@@ -1,10 +1,9 @@
-package tracks.levelGeneration.mctsLevelGenerator;
-
-
-import java.util.Random;
+package tracks.levelGeneration.commonClasses;
 
 import core.game.GameDescription;
 import tools.GameAnalyzer;
+
+import java.util.Random;
 
 public class SharedData {
 

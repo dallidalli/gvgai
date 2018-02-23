@@ -1,4 +1,4 @@
-package tracks.levelGeneration.nrpaLevelGenerator;
+package tracks.levelGeneration.commonClasses;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -166,4 +166,16 @@ public class MultiKeyHashMap<K1,K2,V> {
         mkMap.clear();
     }
 
+    @Override
+    public Object clone(){
+        MultiKeyHashMap clone = new MultiKeyHashMap();
+
+        this.mkMap.keySet().stream().forEach(k1 -> {
+            this.get(k1).keySet().stream().forEach(k2 -> {
+                clone.put(k1, k2, this.get(k1,  k2));
+            });
+        });
+
+        return clone;
+    }
 }

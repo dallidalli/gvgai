@@ -2,6 +2,7 @@ package tracks.levelGeneration.mctsLevelGenerator;
 
 import core.game.GameDescription;
 import tools.Pair;
+import tracks.levelGeneration.commonClasses.*;
 
 import java.util.*;
 
@@ -11,13 +12,15 @@ public class MCTS{
     public double possiblePositions = 0;
     public LinkedList<TreeNode> visited = new LinkedList<TreeNode>();
 
-    public ArrayList<Pair<GeneratedLevel.SpritePointData, String>> actions = new ArrayList<Pair<GeneratedLevel.SpritePointData, String>>();
-    public ArrayList<Pair<GeneratedLevel.SpritePointData, String>> workedActions = new ArrayList<Pair<GeneratedLevel.SpritePointData, String>>();
+    public ArrayList<SpritePointData> actions = new ArrayList<SpritePointData>();
+    public ArrayList<SpritePointData> workedActions = new ArrayList<SpritePointData>();
 
     public GeneratedLevel currentLevel;
-    public ArrayList<Pair<GeneratedLevel.SpritePointData, String>> currentSeq = new ArrayList<Pair<GeneratedLevel.SpritePointData, String>>();
+    public ArrayList<SpritePointData> currentSeq = new ArrayList<SpritePointData>();
 
     public TreeNode root;
+
+    public MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Pair<Double, Double>> nodes = new MultiKeyHashMap<>();
 
     public MCTS(int width, int height, boolean empty) {
         currentLevel = new GeneratedLevel(width, height);
@@ -49,7 +52,7 @@ public class MCTS{
     }
 
     public void selectAction() {
-        workedActions = (ArrayList<Pair<GeneratedLevel.SpritePointData, String>>) actions.clone();
+        workedActions = (ArrayList<SpritePointData>) actions.clone();
         visited.clear();
         currentSeq.clear();
 
@@ -104,11 +107,11 @@ public class MCTS{
         return cur.getChildren()[selected];
     }
 
-    private ArrayList<Pair<GeneratedLevel.SpritePointData, String>> customActionsSingle(ArrayList<Pair<GeneratedLevel.SpritePointData, String>> allActions, Pair<GeneratedLevel.SpritePointData, String> prev) {
-        ArrayList<Pair<GeneratedLevel.SpritePointData, String>> toBeDeleted = new ArrayList<Pair<GeneratedLevel.SpritePointData, String>>();
+    private ArrayList<SpritePointData> customActionsSingle(ArrayList<SpritePointData> allActions, SpritePointData prev) {
+        ArrayList<SpritePointData> toBeDeleted = new ArrayList<SpritePointData>();
 
-        for (Pair<GeneratedLevel.SpritePointData, String> action : allActions) {
-            if (prev.first.x == action.first.x && prev.first.y == action.first.y) {
+        for (SpritePointData action : allActions) {
+            if (prev.x == action.x && prev.y == action.y) {
                 toBeDeleted.add(action);
             }
         }
@@ -120,10 +123,11 @@ public class MCTS{
 
     private void calcActions(){
         double counter = 0.0;
-        for (GeneratedLevel.SpritePointData position : currentLevel.getFreePositions(allSprites)) {
+        for (SpritePointData position : currentLevel.getFreePositions(allSprites)) {
             counter++;
             for (String sprite : allSprites){
-                actions.add(new Pair<GeneratedLevel.SpritePointData, String>(position, sprite));
+                SpritePointData tmp = new SpritePointData(sprite, position.x, position.y);
+                actions.add(tmp);
             }
         }
         possiblePositions = counter;
@@ -199,10 +203,10 @@ public class MCTS{
         }
     }
 
-    public GeneratedLevel getLevel(ArrayList<Pair<GeneratedLevel.SpritePointData, String>> prev, boolean verbose) {
+    public GeneratedLevel getLevel(ArrayList<SpritePointData> prev, boolean verbose) {
         for (int i = 0; i < prev.size(); i++) {
             if (prev.get(i) != null) {
-                currentLevel.setPosition(prev.get(i).first, prev.get(i).second);
+                currentLevel.setPosition(prev.get(i), prev.get(i).name);
             }
         }
 
@@ -214,15 +218,15 @@ public class MCTS{
         return currentLevel;
     }
 
-    public void resetLevel(ArrayList<Pair<GeneratedLevel.SpritePointData, String>> prev) {
+    public void resetLevel(ArrayList<SpritePointData> prev) {
         for (int i = 0; i < prev.size(); i++) {
-            currentLevel.clearPosition(prev.get(i).first);
+            currentLevel.clearPosition(prev.get(i));
         }
 
         currentLevel.resetCalculated();
     }
 
-    private Double getEvalValue(ArrayList<Pair<GeneratedLevel.SpritePointData, String>> seq) {
+    private Double getEvalValue(ArrayList<SpritePointData> seq) {
         getLevel(seq, false);
         double value = 0;
         currentLevel.calculateSoftConstraints(false);

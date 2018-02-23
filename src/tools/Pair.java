@@ -60,4 +60,12 @@ public class Pair<T,U> implements Map.Entry<T, U>, Comparable{
 
     @SuppressWarnings("unchecked")
     public Pair copy()  { return new Pair(first, second); }
+
+    @Override
+    public int hashCode(){
+        int result = 7;
+        result = result * 71 + this.first.hashCode();
+        result = result * 71 + this.second.hashCode();
+        return result;
+    }
 }

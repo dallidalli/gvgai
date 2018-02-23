@@ -1,7 +1,5 @@
 package tracks.levelGeneration.constraints;
 
-import tracks.levelGeneration.nmcsLevelGenerator.GeneratedLevel;
-
 import java.util.ArrayList;
 
 public class ConnectedWallsConstraint extends AbstractConstraint {

@@ -1,4 +1,4 @@
-package tracks.levelGeneration.nmcsLevelGenerator;
+package tracks.levelGeneration.nrpaLevelGenerator;
 
 import core.game.GameDescription;
 import core.generator.AbstractLevelGenerator;
@@ -44,7 +44,7 @@ public class LevelGenerator extends AbstractLevelGenerator{
         width = (int)Math.min(width, SharedData.MAX_SIZE + size);
         height = (int)Math.min(height, SharedData.MAX_SIZE + size);
 
-        NMCS search = new NMCS(width, height, true);
+        NRPA search = new NRPA(width, height, true);
         search.level.calculateSoftConstraints(true);
         //LevelEvaluationFunction eval = new LevelEvaluationFunction();
         //eval.generateEvaluationFunction();
@@ -64,7 +64,7 @@ public class LevelGenerator extends AbstractLevelGenerator{
             ElapsedCpuTimer timer = new ElapsedCpuTimer();
 
 
-            Pair<Double, ArrayList<SpritePointData>> tmp = search.selectAction(1,search.getAllPossibleActions(),-1, () -> {return System.currentTimeMillis() > endTimeMs;});
+            Pair<Double, ArrayList<SpritePointData>> tmp = search.selectAction(1,search.policy, () -> {return System.currentTimeMillis() > endTimeMs;});
 
             if(result == null){
                 result = tmp;

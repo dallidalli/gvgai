@@ -2,6 +2,8 @@ package tracks.levelGeneration.mctsLevelGenerator;
 
 import core.game.GameDescription;
 import tools.Pair;
+import tracks.levelGeneration.commonClasses.GeneratedLevel;
+import tracks.levelGeneration.commonClasses.SpritePointData;
 
 import java.util.*;
 
@@ -9,13 +11,13 @@ public class TreeNode{
 
     private TreeNode[] children;
     private double nVisits, totValue;
-    private Pair<GeneratedLevel.SpritePointData, String> selectedAction;
+    private SpritePointData selectedAction;
 
     public TreeNode(){
 
     }
 
-    public TreeNode(Pair<GeneratedLevel.SpritePointData, String> performedAction){
+    public TreeNode(SpritePointData performedAction){
         selectedAction = performedAction;
     }
 
@@ -34,7 +36,7 @@ public class TreeNode{
         children[index] = child;
     }
 
-    public Pair<GeneratedLevel.SpritePointData, String> getSelectedAction() {
+    public SpritePointData getSelectedAction() {
         return selectedAction;
     }
 
