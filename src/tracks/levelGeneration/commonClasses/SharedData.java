@@ -22,7 +22,7 @@ public class SharedData {
     /**
      * very small value
      */
-    public static final double EIPSLON = 1e-6;
+    public static final double EIPSLON = 1e-9;
     /**
      * used for calculating the minimum required score for the generated level
      */
@@ -30,11 +30,11 @@ public class SharedData {
     /**
      * minimum level size
      */
-    public static final double MIN_SIZE = 4;
+    public static final double MIN_SIZE = 8;
     /**
      * maximum level size
      */
-    public static final double MAX_SIZE = 18;
+    public static final double MAX_SIZE = 8;
     /**
      * minimum acceptable solution
      */

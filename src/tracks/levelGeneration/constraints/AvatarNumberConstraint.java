@@ -1,6 +1,9 @@
 package tracks.levelGeneration.constraints;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+
+import core.game.GameDescription;
 import tools.GameAnalyzer;
 
 public class AvatarNumberConstraint extends AbstractConstraint{
@@ -12,7 +15,7 @@ public class AvatarNumberConstraint extends AbstractConstraint{
 	/**
 	 * Object for game analyzer
 	 */
-	public GameAnalyzer gameAnalyzer;
+	public ArrayList<String> avatarSpritesIn;
 	
 	/**
 	 * Check if there is only 1 avatar in the level
@@ -21,7 +24,7 @@ public class AvatarNumberConstraint extends AbstractConstraint{
 	@Override
 	public double checkConstraint() {
 		int totalAvatars = 0;
-		for(String avatar:gameAnalyzer.getAvatarSprites()){
+		for(String avatar:avatarSpritesIn){
 			if(spriteOccurrences.containsKey(avatar)){
 				totalAvatars += spriteOccurrences.get(avatar);
 			}

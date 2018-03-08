@@ -25,14 +25,14 @@ public class GoalDistanceConstraint extends AbstractConstraint{
             return 0;
         }
 
-        double measuredDistance = 0;
+        double smallestDistance = Double.MAX_VALUE;
         for (int i = 0; i < listOfGoals.size(); i++){
-            measuredDistance = measuredDistance + new Point(avatarPosition.first, avatarPosition.second).distance(new Point(listOfGoals.get(i).first, listOfGoals.get(i).second));
+            double tmp = new Point(avatarPosition.first, avatarPosition.second).distance(new Point(listOfGoals.get(i).first, listOfGoals.get(i).second));
+            if (tmp < smallestDistance){
+                smallestDistance = tmp;
+            }
         }
 
-        measuredDistance = (measuredDistance / listOfGoals.size());
-
-
-        return measuredDistance/maxDistance;
+        return smallestDistance/maxDistance;
     }
 }

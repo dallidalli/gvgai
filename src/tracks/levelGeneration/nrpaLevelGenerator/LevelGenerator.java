@@ -55,6 +55,9 @@ public class LevelGenerator extends AbstractLevelGenerator{
         double avgTime = worstTime;
         double totalTime = 0;
         int numberOfIterations = 0;
+
+        double averageScore = 0;
+
         Pair<Double, ArrayList<SpritePointData>> result = null;
         long endTimeMs = System.currentTimeMillis() + elapsedTimer.remainingTimeMillis();
 
@@ -65,6 +68,8 @@ public class LevelGenerator extends AbstractLevelGenerator{
 
 
             Pair<Double, ArrayList<SpritePointData>> tmp = search.selectAction(1,search.policy, () -> {return System.currentTimeMillis() > endTimeMs;});
+
+            averageScore += tmp.first;
 
             if(result == null){
                 result = tmp;
@@ -82,11 +87,11 @@ public class LevelGenerator extends AbstractLevelGenerator{
             totalTime += timer.elapsedMillis();
             avgTime = totalTime / numberOfIterations;
 
-            if(numberOfIterations % 10 == 0){
-                System.out.println(tmp.first);
-                search.getLevel(tmp.second, true).getLevelMapping();
-                search.resetLevel(tmp.second);
-                System.out.println(numberOfIterations + " " + elapsedTimer.remainingTimeMillis() + " " + avgTime + " " + worstTime);
+            if(numberOfIterations % 1 == 0){
+                System.out.println(averageScore/numberOfIterations);
+                //search.getLevel(tmp.second, true).getLevelMapping();
+                //search.resetLevel(tmp.second);
+                System.out.println(numberOfIterations + " " + search.evaluated + " " + elapsedTimer.remainingTimeMillis() + " " + avgTime + " " + worstTime);
             }
         }
 

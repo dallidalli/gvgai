@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * MultiKeyHashMap provides to store values with two level hierarchy of keys,
@@ -168,14 +169,22 @@ public class MultiKeyHashMap<K1,K2,V> {
 
     @Override
     public Object clone(){
+        MultiKeyHashMap mapCopy = new MultiKeyHashMap();
+        mapCopy.mkMap = this.mkMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        return mapCopy;
+/*
+
         MultiKeyHashMap clone = new MultiKeyHashMap();
 
-        this.mkMap.keySet().stream().forEach(k1 -> {
+
+        this.mkMap.keySet().stream().parallel().forEach(k1 -> {
             this.get(k1).keySet().stream().forEach(k2 -> {
                 clone.put(k1, k2, this.get(k1,  k2));
             });
         });
 
+
         return clone;
+*/
     }
 }

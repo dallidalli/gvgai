@@ -24,10 +24,11 @@ public class NRPA {
     public double numberOfSprites;
     public MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Double> policy = new MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Double>();
 
+    public int cutoff = 0;
     public int evaluated = 0;
     public int assumedDepth = 2;
-    public int numberOfIterations = 100;
-    public double alpha = 3;
+    public int numberOfIterations = 500;
+    public double alpha = 1;
     public double exploration = 0.000; // 0.002
 
     public NRPA(int width, int height, boolean empty) {
@@ -44,17 +45,61 @@ public class NRPA {
             }
         }
 
+        System.out.println(SharedData.gameAnalyzer.getGoalSprites());
+        System.out.println(SharedData.gameAnalyzer.getCollectableSprites());
+        System.out.println(SharedData.gameAnalyzer.getOtherSprites());
+
         ArrayList<String> tmp = new ArrayList<String>();
         for (GameDescription.SpriteData sprite : SharedData.gameDescription.getAllSpriteData()) {
-            tmp.add(sprite.name);
+            if(SharedData.gameAnalyzer.checkIfSpawned(sprite.name) > 0){
+                tmp.add(sprite.name);
+            }
         }
         allSprites.clear();
         allSprites.addAll(tmp);
 
+        ArrayList<String> tmpHarmful = new ArrayList<>();
+        ArrayList<String> tmpOther = new ArrayList<>();
+        ArrayList<String> tmpCollectable = new ArrayList<>();
+        ArrayList<String> tmpSolid = new ArrayList<>();
+        ArrayList<String> tmpAvatar = new ArrayList<>();
+
+        for (String sprite:allSprites) {
+            if(SharedData.gameAnalyzer.getHarmfulSprites().contains(sprite)){
+                tmpHarmful.add(sprite);
+            } else if(SharedData.gameAnalyzer.getOtherSprites().contains(sprite)){
+                tmpOther.add(sprite);
+            } else if(SharedData.gameAnalyzer.getCollectableSprites().contains(sprite)){
+                tmpCollectable.add(sprite);
+            } else if(SharedData.gameAnalyzer.getSolidSprites().contains(sprite)){
+                tmpSolid.add(sprite);
+            } else if(SharedData.gameAnalyzer.getAvatarSprites().contains(sprite)){
+                tmpAvatar.add(sprite);
+            }
+        }
+
+        int maxAmount = Math.max(tmpHarmful.size(), Math.max(tmpOther.size(), Math.max(tmpCollectable.size(), Math.max(tmpSolid.size(), tmpAvatar.size()))));
+
+        for (int i = 0; i < maxAmount - tmpHarmful.size(); i++){
+            allSprites.add(tmpHarmful.get(SharedData.random.nextInt(tmpHarmful.size())));
+        }
+        for (int i = 0; i < maxAmount - tmpOther.size(); i++){
+            allSprites.add(tmpOther.get(SharedData.random.nextInt(tmpOther.size())));
+        }
+        for (int i = 0; i < maxAmount - tmpCollectable.size() -1; i++){
+            allSprites.add(tmpCollectable.get(SharedData.random.nextInt(tmpCollectable.size())));
+        }
+        for (int i = 0; i < maxAmount - tmpSolid.size() +1; i++){
+            allSprites.add(tmpSolid.get(SharedData.random.nextInt(tmpSolid.size())));
+        }
+        for (int i = 0; i < maxAmount - tmpAvatar.size(); i++){
+            allSprites.add(tmpAvatar.get(SharedData.random.nextInt(tmpAvatar.size())));
+        }
+
         calcActions();
         numberOfSprites = allSprites.size();
 
-        numberOfIterations = (int) (allPossibleActions.size()*0.3);
+        numberOfIterations = (int) (allPossibleActions.size()*0.3 + cutoff*allPossibleActions.size()*0.003);
         //addSequence(allPossibleActions, new ArrayList<>());
         //generateTableFromMap(0);
 
@@ -110,20 +155,23 @@ public class NRPA {
         if (level == 0) {
             ArrayList<SpritePointData> seq = new ArrayList<SpritePointData>();
             double fitness = 0;
-            ArrayList<SpritePointData> actions = allPossibleActions;
+            ArrayList<SpritePointData> actions = new ArrayList<>(allPossibleActions);
 
             while (!isTerminal(actions, fitness)) {
                 ArrayList<SpritePointData> candidates = getSuitableActions(seq, actions, currentPolicy);
                 int selectedChild = SharedData.random.nextInt(candidates.size());
                 seq.add(candidates.get(selectedChild));
 
-                actions = customActionsSingleCalc(actions, candidates.get(selectedChild), selectedChild);
-                fitness = (getEvalValue(seq));
+                actions = customActionsSingleCalc(actions, candidates.get(selectedChild), -1);
+                //fitness = (getEvalValue(seq));
             }
             evaluated++;
+
+            //fitness = (getSimulationEval(seq));
+            fitness = getEvalValue(seq);
             return new Pair<Double, ArrayList<SpritePointData>>(fitness, seq);
         } else {
-            currentPolicy = (MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Double>) currentPolicy.clone();
+            //currentPolicy = (MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Double>) currentPolicy.clone();
             Pair<Double, ArrayList<SpritePointData>> bestResult = new Pair<Double, ArrayList<SpritePointData>>(Double.MIN_VALUE, null);
             for (int i = 0; i < numberOfIterations; i++) {
 
@@ -131,8 +179,9 @@ public class NRPA {
 
                     Pair<Double, ArrayList<SpritePointData>> result = selectAction(level - 1, currentPolicy,isCanceled);
 
-                    if (result.first >= bestResult.first) {
+                    if (result.first > bestResult.first) {
                         bestResult = result;
+                        //System.out.println(bestResult.first);
                         //policy = currentPolicy;
 
                     }
@@ -143,13 +192,29 @@ public class NRPA {
                 }
 
             }
-
+            policy = currentPolicy;
             return bestResult;
         }
 
     }
 
+    private double getSimulationEval(ArrayList<SpritePointData> seq) {
+        getLevel(seq, false);
+        double value = 0;
+        level.calculateSoftConstraints(false);
+        ArrayList<Double> finalFitness = level.calculateFitness(SharedData.EVALUATION_TIME);
+        value = level.getConstrainFitness();
+        resetLevel(seq);
+        if(value >= 1){
+            return (finalFitness.get(0) + finalFitness.get(1))/2;
+        } else {
+            return value;
+        }
+    }
+
     private MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Double> adaptPolicy(MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Double> currentPolicy, ArrayList<SpritePointData> seq) {
+        MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Double> tmpPol = (MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Double>) currentPolicy.clone();
+
 
         for (int i = 0; i < seq.size(); i++) {
             ArrayList<SpritePointData> key1;
@@ -157,37 +222,52 @@ public class NRPA {
             if (i == 0) {
                 key1 = new ArrayList<>();
             } else {
-                key1 = new ArrayList<SpritePointData>(seq.subList(0, i));
+                if (i > cutoff){
+                    key1 = new ArrayList<SpritePointData>(seq.subList(i - cutoff, i));
+                } else {
+                    key1 = new ArrayList<SpritePointData>(seq.subList(0, i));
+                }
             }
 
             Collections.sort(key1);
 
             SpritePointData key2 = seq.get(i);
-            double currentValue = currentPolicy.get(key1, key2);
+            double currentValue = tmpPol.get(key1, key2);
             double newValue = currentValue + alpha;
+
+            tmpPol.put(key1, key2, newValue);
 
             Collection<Double> collectionValues = currentPolicy.get(key1).values();
             double sum = 0;
             for (Double value : collectionValues) {
                 sum = sum + Math.exp(value);
             }
-            currentPolicy.put(key1, key2, newValue);
+
+
             Set<Map.Entry<SpritePointData, Double>> others = currentPolicy.get(key1).entrySet();
             for (Map.Entry<SpritePointData, Double> other : others) {
                 SpritePointData k2 = other.getKey();
-                double tmp = currentPolicy.get(key1, k2);
-                tmp = tmp - (alpha * Math.exp(tmp) / sum);
-                currentPolicy.put(key1, k2, tmp);
+                double tmp = tmpPol.get(key1, k2);
+                double tmp2 = currentPolicy.get(key1, k2);
+                tmp = tmp - (alpha * Math.exp(tmp2) / sum);
+                tmpPol.put(key1, k2, tmp);
             }
+
+
 
         }
 
-        return currentPolicy;
+        return tmpPol;
     }
 
     private ArrayList<SpritePointData> getSuitableActions(ArrayList<SpritePointData> sequence, ArrayList<SpritePointData> actions, MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Double> currentPolicy) {
 
         ArrayList<SpritePointData> tmpSequence = new ArrayList<>(sequence);
+
+        if(tmpSequence.size() > cutoff){
+            tmpSequence = new ArrayList<SpritePointData>(tmpSequence.subList(tmpSequence.size()-cutoff, tmpSequence.size()));
+        }
+
         Collections.sort(tmpSequence);
 
         ArrayList<SpritePointData> best = new ArrayList<>();
@@ -292,7 +372,7 @@ public class NRPA {
     private boolean isTerminal(ArrayList<SpritePointData> actions, double fitness) {
         double currentCoverage = (possiblePositions - (actions.size() / allSprites.size())) / possiblePositions;
         //System.out.println((currentCoverage > SharedData.MAX_COVER_PERCENTAGE) + " " +  (getSoftValue(seq) >= 1) + " "+ seq.size());
-        return ((currentCoverage > SharedData.MAX_COVER_PERCENTAGE) || fitness >= 1);
+        return ((currentCoverage >= SharedData.MAX_COVER_PERCENTAGE) || fitness >= 1);
     }
 
 }

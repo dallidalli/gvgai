@@ -100,6 +100,7 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
     public void resetCalculated(){
         this.calculated = false;
         this.constrainFitness = 0;
+        this.fitness.clear();
     }
 
     /**
@@ -502,13 +503,11 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
         Pair<Integer, Integer> avatarPosition;
 
         ArrayList<String> tmp = new ArrayList<String>();
-        for (GameDescription.SpriteData sprite:SharedData.gameDescription.getAvatar()) {
-            tmp.add(sprite.name);
-        }
+        tmp.addAll(SharedData.gameAnalyzer.getAvatarSprites());
 
         ArrayList<SpritePointData> tmpdata = getPositions(tmp);
 
-        if(tmpdata.size() > 0){
+        if(tmpdata.size() == 1){
             avatarPosition = new Pair<Integer, Integer>(tmpdata.get(0).x, tmpdata.get(0).y);
         } else {
             avatarPosition = new Pair<Integer, Integer>(-1,-1);
@@ -531,10 +530,16 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
 
         ArrayList<SpritePointData> tmpPos = getPositions(SharedData.gameAnalyzer.getGoalSprites());
         for (SpritePointData pos:tmpPos) {
-            listOfGoals.add(new Pair<Integer, Integer>(pos.x, pos.y));
+            if(SharedData.gameAnalyzer.getGoalSprites().get(0).equals(pos.name)){
+                listOfGoals.add(new Pair<Integer, Integer>(pos.x, pos.y));
+            }
         }
 
-        ArrayList<String> avatarSprites = SharedData.gameAnalyzer.getAvatarSprites();
+        ArrayList<String> avatarSprites = new ArrayList<>();
+
+        for (GameDescription.SpriteData data:SharedData.gameDescription.getAvatar()) {
+            avatarSprites.add(data.name);
+        }
 
 
         double coverPercentage = getCoverPercentage();
@@ -555,10 +560,11 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
         parameters.put("listOfGoals", listOfGoals);
         parameters.put("avatarSpritesIn", avatarSprites);
         parameters.put("allSprites", SharedData.gameDescription.getAllSpriteData());
+        parameters.put("desiredRatio", 3);
 
 
         CombinedConstraints constraint = new CombinedConstraints();
-        constraint.addConstraints(new String[]{"AccessibilityConstraint", "AvatarNumberConstraint", "ConnectedWallsConstraint", "CoverPercentageConstraint", "EndsInitiallyConstraint", "GoalDistanceConstraint", "SimplestAvatarConstraint", "SpriteNumberConstraint", "SpaceAroundAvatarConstraint", "SymmetryConstraint"});
+        constraint.addConstraints(new String[]{"AccessibilityConstraint", "AvatarNumberConstraint", "ConnectedWallsConstraint", "CoverPercentageConstraint", "EndsInitiallyConstraint", "GoalDistanceConstraint", "NeutralHarmfulRatioConstraint", "SimplestAvatarConstraint", "SpriteNumberConstraint", "SpaceAroundAvatarConstraint", "SymmetryConstraint"});
         constraint.setParameters(parameters);
 
         if(verbose){
@@ -574,10 +580,10 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
      * @return		current fitness of the level
      */
     public ArrayList<Double> calculateFitness(long time){
-        if(!calculated){
+        if(!this.calculated){
             constructAgent();
 
-            calculated = true;
+            this.calculated = true;
             StateObservation stateObs = getStateObservation();
 
             //Play the game using the best agent
@@ -600,7 +606,6 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
                     doNothingState = tempState;
                 }
             }
-            double coverPercentage = getCoverPercentage();
 
             //calculate the maxScore need to be satisfied based on the difference
             //between the score of different collectible objects
@@ -619,21 +624,14 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
             parameters.put("doNothingState", doNothingState.getGameWinner());
             parameters.put("bestPlayer", bestState.getGameWinner());
             parameters.put("minDoNothingSteps", SharedData.MIN_DOTHING_STEPS);
-            parameters.put("coverPercentage", coverPercentage);
-            parameters.put("minCoverPercentage", SharedData.MIN_COVER_PERCENTAGE);
-            parameters.put("maxCoverPercentage", SharedData.MAX_COVER_PERCENTAGE);
-            parameters.put("spriteOccurrences", calculateNumberOfObjects());
-            parameters.put("gameAnalyzer", SharedData.gameAnalyzer);
-            parameters.put("gameDescription", SharedData.gameDescription);
 
             CombinedConstraints constraint = new CombinedConstraints();
-            constraint.addConstraints(new String[]{"SolutionLengthConstraint", "DeathConstraint",
-
-                    "CoverPercentageConstraint", "SpriteNumberConstraint", "GoalConstraint", "AvatarNumberConstraint", "WinConstraint"});
+            constraint.addConstraints(new String[]{"SolutionLengthConstraint", "DeathConstraint", "WinConstraint"});
             constraint.setParameters(parameters);
-            constrainFitness = constraint.checkConstraint();
+            constrainFitness += constraint.checkConstraint();
+            constrainFitness /= 2;
 
-            System.out.println("SolutionLength:" + bestSol.size() + " doNothingSteps:" + doNothingLength + " coverPercentage:" + coverPercentage + " bestPlayer:" + bestState.getGameWinner());
+            System.out.println("SolutionLength:" + bestSol.size() + " doNothingSteps:" + doNothingLength +" bestPlayer:" + bestState.getGameWinner());
 
 
             //calculate the fitness if it satisfied all the constraints

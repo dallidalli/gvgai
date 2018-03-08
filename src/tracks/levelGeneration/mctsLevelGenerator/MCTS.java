@@ -8,23 +8,32 @@ import java.util.*;
 
 public class MCTS{
 
+    public double C = 3; //0.05
+    public double useSPMCTS = 1;
+    public double D = 0.01; //3.5
+
     public ArrayList<String> allSprites = new ArrayList<String>();
     public double possiblePositions = 0;
-    public LinkedList<TreeNode> visited = new LinkedList<TreeNode>();
     public ArrayList<SpritePointData> visitedMap = new ArrayList<SpritePointData>();
+    public ArrayList<SpritePointData> bestSequence = new ArrayList<SpritePointData>();
+    public double bestValue = Double.MIN_VALUE;
+    public ArrayList<SpritePointData> currentSequence = new ArrayList<SpritePointData>();
+    public double currentValue = Double.MIN_VALUE;
 
     public ArrayList<SpritePointData> actions = new ArrayList<SpritePointData>();
     public ArrayList<SpritePointData> workedActions = new ArrayList<SpritePointData>();
 
     public GeneratedLevel currentLevel;
-    public ArrayList<SpritePointData> currentSeq = new ArrayList<SpritePointData>();
 
-    public TreeNode root;
     public MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Pair<Double, Double>> UCTvalues = new MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Pair<Double, Double>>();
-    public ArrayList<SpritePointData> emptyList = new ArrayList<>();
     public int nTotalVisitsTree = 0;
 
-    public MCTS(int width, int height, boolean empty) {
+    public MCTS(int width, int height, boolean empty, boolean SPMCTS) {
+        if(SPMCTS){
+            useSPMCTS = 1;
+        }
+
+
         currentLevel = new GeneratedLevel(width, height);
 
 
@@ -41,89 +50,53 @@ public class MCTS{
 
         ArrayList<String> tmp = new ArrayList<String>();
         for (GameDescription.SpriteData sprite : SharedData.gameDescription.getAllSpriteData()) {
-            tmp.add(sprite.name);
+            if(SharedData.gameAnalyzer.checkIfSpawned(sprite.name) > 0){
+                tmp.add(sprite.name);
+            }
         }
         allSprites.clear();
         allSprites.addAll(tmp);
 
-        calcActions();
 
-        root = new TreeNode();
+        calcActions();
 
         System.out.println("number of actions: " + actions.size());
     }
 
-    public void selectAction() {
-        workedActions = (ArrayList<SpritePointData>) actions.clone();
-        visited.clear();
-        currentSeq.clear();
-
-        TreeNode cur = root;
-        visited.add(cur);
-        while (!cur.isLeaf()) {
-            cur = select(cur);
-            visited.add(cur);
-            currentSeq.add(cur.getSelectedAction());
-        }
-        cur.expand(workedActions.size());
-        TreeNode newNode = select(cur);
-        double value = rollOut(newNode);
-        for (TreeNode node : visited) {
-            // would need extra logic for n-player game
-            node.updateStats(value);
-        }
-    }
-
-
-    private TreeNode select(TreeNode cur) {
-        int selected = 0;
-        double bestValue = Double.MIN_VALUE;
-        for (int i = 0; i < cur.getChildren().length; i++) {
-            TreeNode c = cur.getChildren()[i];
-            double totValueChild;
-            double nVisitsChild;
-
-            if (c != null){
-                totValueChild = c.getTotValue();
-                nVisitsChild = c.getnVisits();
-            } else {
-                totValueChild = 0;
-                nVisitsChild = 0;
-            }
-
-            double uctValue = totValueChild / (nVisitsChild + SharedData.EIPSLON) + Math.sqrt(2)*Math.sqrt(Math.log(root.getnVisits()+1) / (nVisitsChild + SharedData.EIPSLON)) + SharedData.random.nextDouble() * SharedData.EIPSLON;
-
-            // small random number to break ties randomly in unexpanded nodes
-            if (uctValue > bestValue) {
-                selected = i;
-                bestValue = uctValue;
-            }
-        }
-
-        if (cur.getChildren()[selected] == null){
-            cur.addChild(selected, new TreeNode(workedActions.get(selected)));
-        }
-
-        workedActions = customActionsSingleCalc(workedActions, workedActions.get(selected), selected);
-
-        return cur.getChildren()[selected];
-    }
-
     private boolean isLeaf(){
-        ArrayList<SpritePointData> tmp = new ArrayList<>(visitedMap);
-        Collections.sort(tmp);
-        return !UCTvalues.containsKey(tmp);
+        ArrayList<SpritePointData> tmp = new ArrayList<>();
+
+        if(visitedMap.size() > 0){
+            tmp = new ArrayList<>(visitedMap.subList(0,visitedMap.size()-1));
+            Collections.sort(tmp);
+            return !UCTvalues.containsKey(tmp, visitedMap.get(visitedMap.size()-1));
+        } else {
+            tmp = new ArrayList<>(visitedMap);
+            Collections.sort(tmp);
+            return !UCTvalues.containsKey(tmp);
+        }
+
     }
 
-    private SpritePointData selectMap() {
+    private SpritePointData selectMap(SpritePointData current) {
+        double nTotalVisitsParent = 0;
 
         ArrayList<SpritePointData> sequence = new ArrayList<>(visitedMap);
 
+        if(sequence.size() == 0){
+            nTotalVisitsParent = nTotalVisitsTree;
+        } else {
+            ArrayList<SpritePointData> tmpseq = new ArrayList<SpritePointData>(visitedMap.subList(0, visitedMap.size()-1));
+            Collections.sort(tmpseq);
+
+            nTotalVisitsParent = UCTvalues.get(tmpseq, current).second;
+        }
+
         Collections.sort(sequence);
 
+        nTotalVisitsParent++;
         SpritePointData selected = null;
         double bestValue = Double.MIN_VALUE;
-
 
         for (SpritePointData action:workedActions) {
 
@@ -136,7 +109,16 @@ public class MCTS{
                 nVisitsChild = values.second;
             }
 
-            double uctValue = totValueChild / (nVisitsChild + SharedData.EIPSLON) + Math.sqrt(2)*Math.sqrt(Math.log(nTotalVisitsTree+1) / (nVisitsChild + SharedData.EIPSLON)) + SharedData.random.nextDouble() * SharedData.EIPSLON;
+            nVisitsChild++;
+
+
+            double uctValue = 0;
+
+            if(nTotalVisitsParent < workedActions.size()*0.2){
+                uctValue = SharedData.random.nextDouble() * SharedData.EIPSLON;
+            } else{
+                uctValue = totValueChild / (nVisitsChild ) + C*Math.sqrt(Math.log(nTotalVisitsParent) / (nVisitsChild )) + useSPMCTS * (Math.sqrt((Math.pow(totValueChild, 2) - (nVisitsChild ) * Math.pow(totValueChild / (nVisitsChild ),2) + D) / (nVisitsChild ))) + SharedData.random.nextDouble() * SharedData.EIPSLON;
+            }
 
             if (uctValue > bestValue) {
                 selected = action;
@@ -144,10 +126,11 @@ public class MCTS{
             }
         }
 
-        if(!UCTvalues.containsKey(sequence, selected)){
+
+        /*if(!UCTvalues.containsKey(sequence, selected)){
             Pair<Double, Double> values = new Pair<Double, Double>(0.0,0.0);
             UCTvalues.put(sequence, selected, values);
-        }
+        }*/
 
         workedActions = customActionsSingleCalc(workedActions, selected, -1);
 
@@ -155,54 +138,66 @@ public class MCTS{
     }
 
     public double rollOutMap(SpritePointData cur) {
+        /*visitedMap.add(cur);
+
         ArrayList<SpritePointData> tmpSequence = new ArrayList<>(visitedMap);
         Collections.sort(tmpSequence);
-
-        if(!UCTvalues.containsKey(tmpSequence, cur)){
-            Pair<Double, Double> values = new Pair<Double, Double>(0.0,0.0);
-            UCTvalues.put(tmpSequence, cur, values);
-        }
-
-
-        visitedMap.add(cur);
-
-        getLevel(visitedMap, false);
-        currentLevel.calculateSoftConstraints(false);
-        double softConstraint = currentLevel.getConstrainFitness();
-        resetLevel(visitedMap);
-
-        if (!isTerminal(softConstraint)){
+*/
+        if (!isTerminal(0)){
 
             int selectedChild = SharedData.random.nextInt(workedActions.size());
             SpritePointData action = workedActions.get(selectedChild);
-
-            tmpSequence = new ArrayList<>(visitedMap);
-            Collections.sort(tmpSequence);
-
+/*
             if(!UCTvalues.containsKey(tmpSequence, action)){
                 Pair<Double, Double> values = new Pair<Double, Double>(0.0,0.0);
                 UCTvalues.put(tmpSequence, action, values);
             }
-
+*/          visitedMap.add(workedActions.get(selectedChild));
             workedActions = customActionsSingleCalc(workedActions, action, selectedChild);
             return rollOutMap(action);
         } else {
+            getLevel(visitedMap, false);
+            currentLevel.calculateSoftConstraints(false);
+            double softConstraint = currentLevel.getConstrainFitness();
+            resetLevel(visitedMap);
             return softConstraint;
         }
     }
 
     public void selectActionMap() {
-        workedActions = (ArrayList<SpritePointData>) actions.clone();
+        workedActions = new ArrayList<>(actions);
         visitedMap.clear();
 
         SpritePointData cur = null;
 
-        while (!isLeaf()) {
-            cur = selectMap();
+
+        while (!isLeaf() && !isTerminal(0)) {
+            cur = selectMap(cur);
             visitedMap.add(cur);
         }
-        SpritePointData newNode = selectMap();
-        double value = rollOutMap(newNode);
+
+        if (cur == null){
+            cur = selectMap(cur);
+            visitedMap.add(cur);
+        }
+
+        ArrayList<SpritePointData> sequence = new ArrayList<>(visitedMap.subList(0, visitedMap.size()-1));
+        Collections.sort(sequence);
+        if(!UCTvalues.containsKey(sequence, cur)){
+            UCTvalues.put(sequence, cur, new Pair<Double, Double>(0.0,0.0));
+        }
+
+        int index = visitedMap.size();
+        double value = rollOutMap(cur);
+        if(value > bestValue){
+            bestValue = value;
+            bestSequence = new ArrayList<>(visitedMap);
+        }
+        visitedMap = new ArrayList<>(visitedMap.subList(0, index));
+
+        currentSequence = new ArrayList<>(visitedMap);
+        currentValue = value;
+
 
         nTotalVisitsTree++;
         ArrayList<SpritePointData> tmpSequence = new ArrayList<>();
@@ -215,53 +210,30 @@ public class MCTS{
             tmpSequence.add(visitedMap.get(i));
             Collections.sort(tmpSequence);
 
-            if(UCTvalues.containsKey(tmpSequence, visitedMap.get(i+1))){
+
                 tmpValues = UCTvalues.get(tmpSequence, visitedMap.get(i+1));
                 tmpValues.first = tmpValues.first + value;
                 tmpValues.second = tmpValues.second + 1;
                 UCTvalues.put(tmpSequence, visitedMap.get(i+1), tmpValues);
-            } else {
-                tmpValues.first = value;
-                tmpValues.second = 1.0;
-                UCTvalues.put(tmpSequence, visitedMap.get(i+1), tmpValues);
-            }
+
         }
     }
 
-    public ArrayList<SpritePointData> getBestMap(){
-        visitedMap.clear();
-        ArrayList<SpritePointData> sequence;
+    private void expand() {
+        ArrayList<SpritePointData> sequence = new ArrayList<>(visitedMap);
 
-        while(!isLeaf()) {
-            SpritePointData selected = null;
-            double bestValue = Double.MIN_VALUE;
+        Collections.sort(sequence);
 
-            sequence = new ArrayList<>(visitedMap);
-            Collections.sort(sequence);
-
-            for (SpritePointData action : UCTvalues.get(sequence).keySet()) {
-                double totValueChild = 0;
-                double nVisitsChild = 0;
-
-                if (UCTvalues.containsKey(sequence, action)) {
-                    Pair<Double, Double> values = UCTvalues.get(sequence, action);
-                    totValueChild = values.first;
-                    nVisitsChild = values.second;
-                }
-
-                double value = totValueChild / (nVisitsChild + SharedData.EIPSLON);
-
-                if (value > bestValue) {
-                    selected = action;
-                    bestValue = value;
-                }
+        for (SpritePointData action:workedActions) {
+            if(!UCTvalues.containsKey(sequence, action)){
+                UCTvalues.put(sequence, action, new Pair<Double, Double>(0.0,0.0));
             }
-
-            visitedMap.add(selected);
-
         }
 
-        return visitedMap;
+    }
+
+    public ArrayList<SpritePointData> getBestMap(){
+        return bestSequence;
     }
 
     private ArrayList<SpritePointData> customActionsSingleCalc(ArrayList<SpritePointData> allActions, SpritePointData prev, int indexKnown) {
@@ -300,74 +272,10 @@ public class MCTS{
         possiblePositions = counter;
     }
 
-    public TreeNode getBest(){
-        currentSeq.clear();
-        TreeNode cur = root;
-
-        while(!cur.isLeaf()){
-            int selected = 0;
-            double bestValue = Double.MIN_VALUE;
-            for (int i = 0; i < cur.getChildren().length; i++) {
-                TreeNode c = cur.getChildren()[i];
-                double totValueChild;
-                double nVisitsChild;
-
-                if (c != null){
-                    totValueChild = c.getTotValue();
-                    nVisitsChild = c.getnVisits();
-                } else {
-                    totValueChild = 0;
-                    nVisitsChild = 0;
-                }
-
-                double value = totValueChild / (nVisitsChild + SharedData.EIPSLON);
-
-                if (value > bestValue) {
-                    selected = i;
-                    bestValue = value;
-                }
-            }
-            cur = cur.getChildren()[selected];
-            currentSeq.add(cur.getSelectedAction());
-        }
-
-        return cur;
-    }
-
     private boolean isTerminal(double fitness) {
         double currentCoverage = (possiblePositions - (workedActions.size() / allSprites.size())) / possiblePositions;
 
-        return ((currentCoverage > SharedData.MAX_COVER_PERCENTAGE) || (fitness >= 1));
-    }
-
-
-    public double rollOut(TreeNode tn) {
-
-        TreeNode cur = tn;
-        visited.add(cur);
-        currentSeq.add(cur.getSelectedAction());
-
-
-        getLevel(currentSeq, false);
-        currentLevel.calculateSoftConstraints(false);
-        double softConstraint = currentLevel.getConstrainFitness();
-        resetLevel(currentSeq);
-
-        if (!isTerminal(softConstraint)){
-            if (cur.getChildren() == null) {
-                cur.expand(workedActions.size());
-            }
-            int selectedChild = SharedData.random.nextInt(workedActions.size());
-
-            if (cur.getChildren()[selectedChild] == null){
-                cur.addChild(selectedChild, new TreeNode(workedActions.get(selectedChild)));
-            }
-
-            workedActions = customActionsSingleCalc(workedActions, workedActions.get(selectedChild), selectedChild);
-            return rollOut(cur.getChildren()[selectedChild]);
-        } else {
-            return softConstraint;
-        }
+        return ((currentCoverage >= SharedData.MAX_COVER_PERCENTAGE) || (fitness >= 1));
     }
 
     public GeneratedLevel getLevel(ArrayList<SpritePointData> prev, boolean verbose) {
@@ -393,20 +301,8 @@ public class MCTS{
         currentLevel.resetCalculated();
     }
 
-    private Double getEvalValue(ArrayList<SpritePointData> seq) {
-        getLevel(seq, false);
-        double value = 0;
-        currentLevel.calculateSoftConstraints(false);
-        value = currentLevel.getConstrainFitness();
-        resetLevel(seq);
-        return value;
-    }
-
     public GeneratedLevel getCurrentLevel() {
         return currentLevel;
     }
 
-    public void setCurrentLevel(GeneratedLevel currentLevel) {
-        this.currentLevel = currentLevel;
-    }
 }

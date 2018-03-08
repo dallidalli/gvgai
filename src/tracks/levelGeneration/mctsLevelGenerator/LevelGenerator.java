@@ -4,6 +4,7 @@ import core.game.GameDescription;
 import core.generator.AbstractLevelGenerator;
 import tools.ElapsedCpuTimer;
 import tools.GameAnalyzer;
+import tools.Pair;
 import tracks.levelGeneration.commonClasses.SharedData;
 import tracks.levelGeneration.commonClasses.SpritePointData;
 
@@ -45,7 +46,7 @@ public class LevelGenerator extends AbstractLevelGenerator{
         List<MCTS> list = new LinkedList<MCTS>();
         System.out.println("list: " + list);
 
-        MCTS search = new MCTS(width, height, true);
+        MCTS search = new MCTS(width, height, true, false);
         list.add(search);
 
         //some variables to make sure not getting out of time
@@ -53,6 +54,9 @@ public class LevelGenerator extends AbstractLevelGenerator{
         double avgTime = worstTime;
         double totalTime = 0;
         int numberOfIterations = 0;
+        double avgScore = 0;
+        double stuck = 0;
+        double stuckvalue = 0;
 
         System.out.println(numberOfIterations + " " + elapsedTimer.remainingTimeMillis() + " " + avgTime + " " + worstTime);
         while(elapsedTimer.remainingTimeMillis() > 2 * avgTime &&
@@ -60,17 +64,53 @@ public class LevelGenerator extends AbstractLevelGenerator{
             ElapsedCpuTimer timer = new ElapsedCpuTimer();
 
             list.get(0).selectActionMap();
-
+            avgScore += list.get(0).currentValue;
 
             numberOfIterations += 1;
             totalTime += timer.elapsedMillis();
             avgTime = totalTime / numberOfIterations;
 
-            if(numberOfIterations % 1000 == 0){
-                ArrayList<SpritePointData> best = list.get(0).getBestMap();
-                list.get(0).getLevel(best, true);
-                list.get(0).resetLevel(best);
-                System.out.println(numberOfIterations + " " + elapsedTimer.remainingTimeMillis() + " " + avgTime + " " + worstTime);
+            if(numberOfIterations % 100 == 0){
+                double maxVisit = 0, averageVisit = 0, counter = 0, minVisit = 99999;
+
+                for (Pair<Double, Double> pair:list.get(0).UCTvalues.get(new ArrayList<SpritePointData>()).values()) {
+                    if(pair.second >= 0){
+                        counter++;
+                    }
+                    averageVisit += pair.second;
+
+                    if(pair.second > maxVisit){
+                        maxVisit = pair.second;
+                    }
+
+                    if(pair.second <= minVisit){
+                        minVisit = pair.second;
+                    }
+                }
+
+                double amountOfNodes = list.get(0).UCTvalues.size();
+
+                if(amountOfNodes > stuckvalue){
+                    stuck = 0;
+                    stuckvalue = amountOfNodes;
+                } else {
+                    stuck++;
+                }
+
+                if(stuck == 99999){
+                    list.get(0).UCTvalues.clear();
+                    stuck = 0;
+                    stuckvalue = 0;
+                } else {
+                    System.out.println(amountOfNodes + " " + minVisit+" "+ maxVisit+ " "+averageVisit/list.get(0).UCTvalues.get(new ArrayList<SpritePointData>()).values().size() + " " +counter/list.get(0).actions.size()+ " " +search.visitedMap.size());
+                    ArrayList<SpritePointData> current = list.get(0).currentSequence;
+                    System.out.println(avgScore/numberOfIterations);
+                    //list.get(0).getLevel(current, true);
+                    //list.get(0).resetLevel(current);
+                    System.out.println(numberOfIterations + " " + elapsedTimer.remainingTimeMillis() + " " + avgTime + " " + worstTime);
+                }
+
+
             }
         }
 

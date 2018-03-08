@@ -55,6 +55,8 @@ public class LevelGenerator extends AbstractLevelGenerator{
         double avgTime = worstTime;
         double totalTime = 0;
         int numberOfIterations = 0;
+        double averageScore = 0;
+
         Pair<Double, ArrayList<SpritePointData>> result = null;
         long endTimeMs = System.currentTimeMillis() + elapsedTimer.remainingTimeMillis();
 
@@ -63,9 +65,23 @@ public class LevelGenerator extends AbstractLevelGenerator{
                 elapsedTimer.remainingTimeMillis() > worstTime){
             ElapsedCpuTimer timer = new ElapsedCpuTimer();
 
+            Pair<Double, ArrayList<SpritePointData>> tmp;
 
-            Pair<Double, ArrayList<SpritePointData>> tmp = search.selectAction(1,null, () -> {return System.currentTimeMillis() > endTimeMs;});
+            /*if(result == null){
+                tmp = search.selectAction(1,null, () -> {return System.currentTimeMillis() > endTimeMs;});
+            } else {
+                tmp = search.selectAction(1,null, () -> {return System.currentTimeMillis() > endTimeMs;});
+            }*/
 
+
+
+
+            tmp = search.selectAction2(1, new ArrayList<>(search.allPossibleActions),  () -> {return System.currentTimeMillis() > endTimeMs;});
+
+
+
+
+            averageScore += tmp.first;
             if(result == null){
                 result = tmp;
             }else {
@@ -79,11 +95,11 @@ public class LevelGenerator extends AbstractLevelGenerator{
             totalTime += timer.elapsedMillis();
             avgTime = totalTime / numberOfIterations;
 
-            if(numberOfIterations % 1000 == 0){
-                System.out.println(tmp.first);
-                search.getLevel(result.second, true).getLevelMapping();
-                search.resetLevel(result.second);
-                System.out.println(numberOfIterations + " " + elapsedTimer.remainingTimeMillis() + " " + avgTime + " " + worstTime);
+            if(numberOfIterations % 1 == 0){
+                System.out.println(averageScore/numberOfIterations);
+                //search.getLevel(tmp.second, true).getLevelMapping();
+                //search.resetLevel(tmp.second);
+                System.out.println(numberOfIterations + " " + search.evaluated + " " + search.results.size() + " " + elapsedTimer.remainingTimeMillis() + " " + avgTime + " " + worstTime);
             }
         }
 

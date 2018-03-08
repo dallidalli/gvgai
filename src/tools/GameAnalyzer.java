@@ -138,6 +138,7 @@ public class GameAnalyzer {
 				minRequiredNumber.put(sprite.name, 0);
 			}
 		}
+
 	}
 	
 	/**
