@@ -1,18 +1,18 @@
-package tracks.levelGeneration.constraints;
+package dallidalli.constraints;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import tools.GameAnalyzer;
 
 public class AvatarNumberConstraint extends AbstractConstraint{
 
 	/**
 	 * hashmap contains the number of objects for each type
 	 */
-	public HashMap<String, Integer> numOfObjects;
+	public HashMap<String, Integer> spriteOccurrences;
 	/**
 	 * Object for game analyzer
 	 */
-	public GameAnalyzer gameAnalyzer;
+	public ArrayList<String> avatarSpritesIn;
 	
 	/**
 	 * Check if there is only 1 avatar in the level
@@ -21,9 +21,9 @@ public class AvatarNumberConstraint extends AbstractConstraint{
 	@Override
 	public double checkConstraint() {
 		int totalAvatars = 0;
-		for(String avatar:gameAnalyzer.getAvatarSprites()){
-			if(numOfObjects.containsKey(avatar)){
-				totalAvatars += numOfObjects.get(avatar);
+		for(String avatar:avatarSpritesIn){
+			if(spriteOccurrences.containsKey(avatar)){
+				totalAvatars += spriteOccurrences.get(avatar);
 			}
 		}
 		

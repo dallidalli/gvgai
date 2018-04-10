@@ -1,0 +1,122 @@
+---
+title: "ThesisExperiments"
+author: "Eric Dallmeier"
+date: "10 April 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd("C:/Users/dalli/IdeaProjects/gvgai/experiments")
+```
+
+```{r}
+mcts_file_names <- paste0("MCTS_C/",dir(path = "MCTS_C/", pattern = "MCTS_8.0x8.0_C0.5"))
+mcts0_5 <- lapply(seq_along(mcts_file_names),function(x){
+  assign(paste0("mcts0_5_", x), read.table(mcts_file_names[x], header = TRUE, sep = ","))
+})
+
+mcts_file_names <- paste0("MCTS_C/",dir(path = "MCTS_C/", pattern = "MCTS_8.0x8.0_C1"))
+mcts1_4 <- lapply(seq_along(mcts_file_names),function(x){
+  assign(paste0("mcts1_4_", x), read.table(mcts_file_names[x], header = TRUE, sep = ","))
+})
+
+mcts_file_names <- paste0("MCTS_C/",dir(path = "MCTS_C/", pattern = "MCTS_8.0x8.0_C3"))
+mcts3_0 <- lapply(seq_along(mcts_file_names),function(x){
+  assign(paste0("mcts3_0_", x), read.table(mcts_file_names[x], header = TRUE, sep = ","))
+})
+
+mcts_file_names <- paste0("MCTS_C/",dir(path = "MCTS_C/", pattern = "MCTS_8.0x8.0_C0.9"))
+mcts0_9 <- lapply(seq_along(mcts_file_names),function(x){
+  assign(paste0("mcts0_9_", x), read.table(mcts_file_names[x], header = TRUE, sep = ","))
+})
+
+mcts_file_names <- paste0("MCTS_C/",dir(path = "MCTS_C/", pattern = "MCTS_8.0x8.0_C0.05"))
+mcts0_05 <- lapply(seq_along(mcts_file_names),function(x){
+  assign(paste0("mcts0_05_", x), read.table(mcts_file_names[x], header = TRUE, sep = ","))
+})
+
+```
+
+
+```{r}
+
+minNumRows <- min(sapply(mcts0_5, nrow))
+numObs <- length(mcts0_5)
+mcts0_5Avg <- lapply(mcts0_5, function(x){
+  x <- x[1:minNumRows,]
+})
+mcts0_5Avg <- Reduce('+', mcts0_5Avg)
+mcts0_5Avg <- sapply(mcts0_5Avg, function(x){
+  x <- x / numObs
+})
+mcts0_5Avg <- data.frame(mcts0_5Avg)
+
+
+minNumRows <- min(sapply(mcts1_4, nrow))
+numObs <- length(mcts1_4)
+mcts1_4Avg <- lapply(mcts1_4, function(x){
+  x <- x[1:minNumRows,]
+})
+mcts1_4Avg <- Reduce('+', mcts1_4Avg)
+mcts1_4Avg <- sapply(mcts1_4Avg, function(x){
+  x <- x / numObs
+})
+mcts1_4Avg <- data.frame(mcts1_4Avg)
+
+
+minNumRows <- min(sapply(mcts3_0, nrow))
+numObs <- length(mcts3_0)
+mcts3_0Avg <- lapply(mcts3_0, function(x){
+  x <- x[1:minNumRows,]
+})
+mcts3_0Avg <- Reduce('+', mcts3_0Avg)
+mcts3_0Avg <- sapply(mcts3_0Avg, function(x){
+  x <- x / numObs
+})
+mcts3_0Avg <- data.frame(mcts3_0Avg)
+
+minNumRows <- min(sapply(mcts0_9, nrow))
+numObs <- length(mcts0_9)
+mcts0_9Avg <- lapply(mcts0_9, function(x){
+  x <- x[1:minNumRows,]
+})
+mcts0_9Avg <- Reduce('+', mcts0_9Avg)
+mcts0_9Avg <- sapply(mcts0_9Avg, function(x){
+  x <- x / numObs
+})
+mcts0_9Avg <- data.frame(mcts0_9Avg)
+
+
+minNumRows <- min(sapply(mcts0_05, nrow))
+numObs <- length(mcts0_05)
+mcts0_05Avg <- lapply(mcts0_05, function(x){
+  x <- x[1:minNumRows,]
+})
+mcts0_05Avg <- Reduce('+', mcts0_05Avg)
+mcts0_05Avg <- sapply(mcts0_05Avg, function(x){
+  x <- x / numObs
+})
+mcts0_05Avg <- data.frame(mcts0_05Avg)
+
+```
+
+```{r}
+
+maxEval <- max(mcts0_5Avg$evaluated, max(mcts3_0Avg$evaluated, max(mcts1_4Avg$evaluated, max(mcts0_05Avg$evaluated, mcts0_9Avg$evaluated))))
+
+
+
+
+plot(mcts0_5Avg$evaluated, mcts0_5Avg$avgValue, xlim = c(0,maxEval), ylim = c(0.3,0.82), col = "red")
+abline(h=max(mcts0_5Avg$avgValue), col = "red")
+points(mcts1_4Avg$evaluated, mcts1_4Avg$avgValue, col = "blue")
+abline(h=max(mcts1_4Avg$avgValue), col = "blue")
+points(mcts3_0Avg$evaluated, mcts3_0Avg$avgValue, col = "green")
+abline(h=max(mcts3_0Avg$avgValue), col = "green")
+points(mcts0_05Avg$evaluated, mcts0_05Avg$avgValue, col = "black")
+abline(h=max(mcts0_05Avg$avgValue), col = "black")
+points(mcts0_9Avg$evaluated, mcts0_9Avg$avgValue, col = "yellow")
+abline(h=max(mcts0_9Avg$avgValue), col = "yellow")
+```
+

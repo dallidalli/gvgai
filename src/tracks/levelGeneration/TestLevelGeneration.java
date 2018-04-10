@@ -1,6 +1,11 @@
 package tracks.levelGeneration;
 
+import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import static java.util.concurrent.Executors.newFixedThreadPool;
 
 public class TestLevelGeneration {
 
@@ -11,9 +16,10 @@ public class TestLevelGeneration {
 		String randomLevelGenerator = "tracks.levelGeneration.randomLevelGenerator.LevelGenerator";
 		String geneticGenerator = "tracks.levelGeneration.geneticLevelGenerator.LevelGenerator";
 		String constructiveLevelGenerator = "tracks.levelGeneration.constructiveLevelGenerator.LevelGenerator";
-		String mctsLevelGenerator = "tracks.levelGeneration.mctsLevelGenerator.LevelGenerator";
-		String nmcsLevelGenerator = "tracks.levelGeneration.nmcsLevelGenerator.LevelGenerator";
-		String nrpaLevelGenerator = "tracks.levelGeneration.nrpaLevelGenerator.LevelGenerator";
+		String mctsLevelGenerator = "dallidalli.mctsLevelGenerator.LevelGenerator";
+		String nmcsLevelGenerator = "dallidalli.nmcsLevelGenerator.LevelGenerator";
+		String nrpaLevelGenerator = "dallidalli.nrpaLevelGenerator.LevelGenerator";
+
 
 		String gamesPath = "examples/gridphysics/";
 		String physicsGamesPath = "examples/contphysics/";
@@ -54,8 +60,14 @@ public class TestLevelGeneration {
 
 
 		// 1. This starts a game, in a generated level created by a specific level generator
-		if(LevelGenMachine.generateOneLevel(game, nrpaLevelGenerator, recordLevelFile)){
-		    LevelGenMachine.playOneGeneratedLevel(game, recordActionsFile, recordLevelFile, seed);
+		//if(LevelGenMachine.generateOneLevel(game, mctsLevelGenerator, recordLevelFile)){
+		//    LevelGenMachine.playOneGeneratedLevel(game, recordActionsFile, recordLevelFile, seed);
+		//}
+
+		int n = 3;
+
+		for (int i = 0; i < n; i++) {
+			LevelGenMachine.generateOneLevel(game, mctsLevelGenerator, recordLevelFile);
 		}
 
 

@@ -1,0 +1,84 @@
+---
+title: "ThesisExperiments"
+author: "Eric Dallmeier"
+date: "10 April 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd("C:/Users/dalli/IdeaProjects/gvgai/experiments")
+```
+
+```{r}
+mcts_file_names <- paste0("zelda_3min/",dir(path = "zelda_3min/", pattern = "MCTS*"))
+mcts <- lapply(seq_along(mcts_file_names),function(x){
+  assign(paste0("mcts_", x), read.table(mcts_file_names[x], header = TRUE, sep = ","))
+})
+
+nmcs_file_names <- paste0("zelda_3min/",dir(path = "zelda_3min/", pattern = "NMCS*"))
+nmcs <- lapply(seq_along(nmcs_file_names),function(x){
+  assign(paste0("nmcs_", x), read.table(nmcs_file_names[x], header = TRUE, sep = ","))
+})
+
+nrpa_file_names <- paste0("zelda_3min/",dir(path = "zelda_3min/", pattern = "NRPA*"))
+nrpa <- lapply(seq_along(nrpa_file_names),function(x){
+  assign(paste0("nrpa_", x), read.table(nrpa_file_names[x], header = TRUE, sep = ","))
+})
+```
+
+
+```{r}
+
+minNumRows <- min(sapply(mcts, nrow))
+numObs <- length(mcts)
+mctsAvg <- lapply(mcts, function(x){
+  x <- x[1:minNumRows,]
+})
+mctsAvg <- Reduce('+', mctsAvg)
+mctsAvg <- sapply(mctsAvg, function(x){
+  x <- x / numObs
+})
+mctsAvg <- data.frame(mctsAvg)
+
+
+minNumRows <- min(sapply(nmcs, nrow))
+numObs <- length(nmcs)
+nmcsAvg <- lapply(nmcs, function(x){
+  x <- x[1:minNumRows,]
+})
+nmcsAvg <- Reduce('+', nmcsAvg)
+nmcsAvg <- sapply(nmcsAvg, function(x){
+  x <- x / numObs
+})
+nmcsAvg <- data.frame(nmcsAvg)
+
+
+minNumRows <- min(sapply(nrpa, nrow))
+numObs <- length(nrpa)
+nrpaAvg <- lapply(nrpa, function(x){
+  x <- x[1:minNumRows,]
+})
+nrpaAvg <- Reduce('+', nrpaAvg)
+nrpaAvg <- sapply(nrpaAvg, function(x){
+  x <- x / numObs
+})
+nrpaAvg <- data.frame(nrpaAvg)
+
+```
+
+```{r}
+
+maxEval <- max(mctsAvg$evaluated, max(nrpaAvg$evaluated, nmcsAvg$evaluated))
+
+
+
+
+plot(mctsAvg$evaluated, mctsAvg$avgValue, xlim = c(0,maxEval), ylim = c(0.3,0.82), col = "red")
+abline(h=max(mctsAvg$avgValue), col = "red")
+points(nmcsAvg$evaluated, nmcsAvg$avgValue, col = "blue")
+abline(h=max(nmcsAvg$avgValue), col = "blue")
+points(nrpaAvg$evaluated, nrpaAvg$avgValue, col = "green")
+abline(h=max(nrpaAvg$avgValue), col = "green")
+```
+
