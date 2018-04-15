@@ -11,19 +11,25 @@ setwd("C:/Users/dalli/IdeaProjects/gvgai/experiments")
 ```
 
 ```{r}
-mcts_file_names <- paste0("MCTS_restart/",dir(path = "MCTS_restart/", pattern = "MCTS_8.0x8.0_C0.5_1"))
-mcts0_5 <- lapply(seq_along(mcts_file_names),function(x){
-  assign(paste0("mcts0_5_", x), read.table(mcts_file_names[x], header = TRUE, sep = ","))
-})
 
 mcts_file_names <- paste0("MCTS_restart/",dir(path = "MCTS_restart/", pattern = "MCTS_8.0x8.0_C0.05_1"))
 mcts0_05 <- lapply(seq_along(mcts_file_names),function(x){
   assign(paste0("mcts0_05_", x), read.table(mcts_file_names[x], header = TRUE, sep = ","))
 })
 
-mcts_file_names <- paste0("MCTS_restart/",dir(path = "MCTS_restart/", pattern = "MCTS_8.0x8.0_C0.5_restart500000"))
-mcts0_5r500000 <- lapply(seq_along(mcts_file_names),function(x){
-  assign(paste0("mcts0_5r500000_", x), read.table(mcts_file_names[x], header = TRUE, sep = ","))
+mcts_file_names <- paste0("MCTS_restart/",dir(path = "MCTS_restart/", pattern = "MCTS_8.0x8.0_C0.05_restart10000"))
+mcts0_05r10000 <- lapply(seq_along(mcts_file_names),function(x){
+  assign(paste0("mcts0_05r10000_", x), read.table(mcts_file_names[x], header = TRUE, sep = ","))
+})
+
+mcts_file_names <- paste0("MCTS_restart/",dir(path = "MCTS_restart/", pattern = "MCTS_8.0x8.0_C0.05_restart50000"))
+mcts0_05r50000 <- lapply(seq_along(mcts_file_names),function(x){
+  assign(paste0("mcts0_05r50000_", x), read.table(mcts_file_names[x], header = TRUE, sep = ","))
+})
+
+mcts_file_names <- paste0("MCTS_restart/",dir(path = "MCTS_restart/", pattern = "MCTS_8.0x8.0_C0.05_restart150000"))
+mcts0_05r150000 <- lapply(seq_along(mcts_file_names),function(x){
+  assign(paste0("mcts0_05r150000_", x), read.table(mcts_file_names[x], header = TRUE, sep = ","))
 })
 
 mcts_file_names <- paste0("MCTS_restart/",dir(path = "MCTS_restart/", pattern = "MCTS_8.0x8.0_C0.05_restart500000"))
@@ -31,22 +37,12 @@ mcts0_05r500000 <- lapply(seq_along(mcts_file_names),function(x){
   assign(paste0("mcts0_05r500000_", x), read.table(mcts_file_names[x], header = TRUE, sep = ","))
 })
 
+
+
 ```
 
 
 ```{r}
-
-minNumRows <- min(sapply(mcts0_5, nrow))
-numObs <- length(mcts0_5)
-mcts0_5Avg <- lapply(mcts0_5, function(x){
-  x <- x[1:minNumRows,]
-})
-mcts0_5Avg <- Reduce('+', mcts0_5Avg)
-mcts0_5Avg <- sapply(mcts0_5Avg, function(x){
-  x <- x / numObs
-})
-mcts0_5Avg <- data.frame(mcts0_5Avg)
-
 
 minNumRows <- min(sapply(mcts0_05, nrow))
 numObs <- length(mcts0_05)
@@ -59,16 +55,44 @@ mcts0_05Avg <- sapply(mcts0_05Avg, function(x){
 })
 mcts0_05Avg <- data.frame(mcts0_05Avg)
 
-minNumRows <- min(sapply(mcts0_5r500000, nrow))
-numObs <- length(mcts0_5r500000)
-mcts0_5r500000Avg <- lapply(mcts0_5r500000, function(x){
+
+
+minNumRows <- min(sapply(mcts0_05r10000, nrow))
+numObs <- length(mcts0_05r10000)
+mcts0_05r10000Avg <- lapply(mcts0_05r10000, function(x){
   x <- x[1:minNumRows,]
 })
-mcts0_5r500000Avg <- Reduce('+', mcts0_5r500000Avg)
-mcts0_5r500000Avg <- sapply(mcts0_5r500000Avg, function(x){
+mcts0_05r10000Avg <- Reduce('+', mcts0_05r10000Avg)
+mcts0_05r10000Avg <- sapply(mcts0_05r10000Avg, function(x){
   x <- x / numObs
 })
-mcts0_5r500000Avg <- data.frame(mcts0_5r500000Avg)
+mcts0_05r10000Avg <- data.frame(mcts0_05r10000Avg)
+
+
+
+minNumRows <- min(sapply(mcts0_05r50000, nrow))
+numObs <- length(mcts0_05r50000)
+mcts0_05r50000Avg <- lapply(mcts0_05r50000, function(x){
+  x <- x[1:minNumRows,]
+})
+mcts0_05r50000Avg <- Reduce('+', mcts0_05r50000Avg)
+mcts0_05r50000Avg <- sapply(mcts0_05r50000Avg, function(x){
+  x <- x / numObs
+})
+mcts0_05r50000Avg <- data.frame(mcts0_05r50000Avg)
+
+
+
+minNumRows <- min(sapply(mcts0_05r150000, nrow))
+numObs <- length(mcts0_05r150000)
+mcts0_05r150000Avg <- lapply(mcts0_05r150000, function(x){
+  x <- x[1:minNumRows,]
+})
+mcts0_05r150000Avg <- Reduce('+', mcts0_05r150000Avg)
+mcts0_05r150000Avg <- sapply(mcts0_05r150000Avg, function(x){
+  x <- x / numObs
+})
+mcts0_05r150000Avg <- data.frame(mcts0_05r150000Avg)
 
 
 minNumRows <- min(sapply(mcts0_05r500000, nrow))
@@ -86,18 +110,20 @@ mcts0_05r500000Avg <- data.frame(mcts0_05r500000Avg)
 
 ```{r}
 
-maxEval <- max(mcts0_5Avg$evaluated, max(mcts0_5r500000Avg$evaluated, max(mcts0_05r500000Avg$evaluated, mcts0_05Avg$evaluated)))
+maxEval <- max(mcts0_05r10000Avg$evaluated, max(mcts0_05r50000Avg$evaluated, max(mcts0_05r500000Avg$evaluated, max(mcts0_05r150000Avg,mcts0_05Avg$evaluated))))
 
 
 
 
-plot(mcts0_5Avg$evaluated, mcts0_5Avg$avgValue, xlim = c(0,maxEval), ylim = c(0.3,0.82), col = "red")
-abline(h=max(mcts0_5Avg$avgValue), col = "red")
-points(mcts0_5r500000Avg$evaluated, mcts0_5r500000Avg$avgValue, col = "blue")
-abline(h=max(mcts0_5r500000Avg$avgValue), col = "blue")
+plot(mcts0_05Avg$evaluated, mcts0_05Avg$avgValue, xlim = c(0,maxEval), ylim = c(0.3,0.82), col = "black")
+abline(h=max(mcts0_05Avg$avgValue), col = "black")
 points(mcts0_05r500000Avg$evaluated, mcts0_05r500000Avg$avgValue, col = "green")
 abline(h=max(mcts0_05r500000Avg$avgValue), col = "green")
-points(mcts0_05Avg$evaluated, mcts0_05Avg$avgValue, col = "black")
-abline(h=max(mcts0_05Avg$avgValue), col = "black")
+points(mcts0_05r150000Avg$evaluated, mcts0_05r150000Avg$avgValue, col = "red")
+abline(h=max(mcts0_05r150000Avg$avgValue), col = "red")
+points(mcts0_05r50000Avg$evaluated, mcts0_05r50000Avg$avgValue, col = "blue")
+abline(h=max(mcts0_05r50000Avg$avgValue), col = "blue")
+points(mcts0_05r10000Avg$evaluated, mcts0_05r10000Avg$avgValue, col = "yellow")
+abline(h=max(mcts0_05r10000Avg$avgValue), col = "yellow")
 ```
 

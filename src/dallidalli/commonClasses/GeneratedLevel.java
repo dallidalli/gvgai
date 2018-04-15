@@ -535,47 +535,67 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
         return i;
     }
 
-    public void calculateSoftConstraints(boolean verbose){
-        Pair<Integer, Integer> avatarPosition;
+    public void calculateSoftConstraints(boolean verbose, boolean useNew){
+        if(useNew){
+            Pair<Integer, Integer> avatarPosition;
 
-        ArrayList<SpritePointData> tmpdata = new ArrayList<>(getPositions(SharedData.gameAnalyzer.getAvatarSprites()));
+            ArrayList<SpritePointData> tmpdata = new ArrayList<>(getPositions(SharedData.gameAnalyzer.getAvatarSprites()));
 
-        if(tmpdata.size() == 1){
-            avatarPosition = new Pair<Integer, Integer>(tmpdata.get(0).x, tmpdata.get(0).y);
-        } else {
-            avatarPosition = new Pair<Integer, Integer>(-1,-1);
-        }
-
-
-        HashMap<String, Integer> spriteOccurrences = calculateNumberOfObjects();
-
-
-        ArrayList<Pair<Integer, Integer>> listOfGoals = new ArrayList<Pair<Integer, Integer>>();
-
-        tmpdata = new ArrayList<>(getPositions(SharedData.gameAnalyzer.getGoalSprites()));
-
-        for (SpritePointData pos:tmpdata) {
-            if(SharedData.gameAnalyzer.getGoalSprites().get(0).equals(pos.name)){
-                listOfGoals.add(new Pair<Integer, Integer>(pos.x, pos.y));
+            if(tmpdata.size() == 1){
+                avatarPosition = new Pair<Integer, Integer>(tmpdata.get(0).x, tmpdata.get(0).y);
+            } else {
+                avatarPosition = new Pair<Integer, Integer>(-1,-1);
             }
+
+
+            HashMap<String, Integer> spriteOccurrences = calculateNumberOfObjects();
+
+
+            ArrayList<Pair<Integer, Integer>> listOfGoals = new ArrayList<Pair<Integer, Integer>>();
+
+            tmpdata = new ArrayList<>(getPositions(SharedData.gameAnalyzer.getGoalSprites()));
+
+            for (SpritePointData pos:tmpdata) {
+                if(SharedData.gameAnalyzer.getGoalSprites().get(0).equals(pos.name)){
+                    listOfGoals.add(new Pair<Integer, Integer>(pos.x, pos.y));
+                }
+            }
+
+
+            double coverPercentage = getCoverPercentage();
+
+            this.parameters.put("coverPercentage", coverPercentage);
+            this.parameters.put("avatarPosition", avatarPosition);
+            this.parameters.put("level", this.level);
+            this.parameters.put("spriteOccurrences", spriteOccurrences);
+            this.parameters.put("listOfGoals", listOfGoals);
+
+            this.constraint.setParameters(this.parameters);
+
+            if(verbose){
+                this.constraint.listConstraints();
+            }
+
+            this.constrainFitness = this.constraint.checkConstraint();
+        } else {
+
+
+            double coverPercentage = getCoverPercentage();
+
+            //calculate the constrain fitness by applying all different constraints
+            HashMap<String, Object> parameters = new HashMap<String, Object>();
+            parameters.put("coverPercentage", coverPercentage);
+            parameters.put("minCoverPercentage", SharedData.MIN_COVER_PERCENTAGE);
+            parameters.put("maxCoverPercentage", SharedData.MAX_COVER_PERCENTAGE);
+            parameters.put("numOfObjects", calculateNumberOfObjects());
+            parameters.put("gameAnalyzer", SharedData.gameAnalyzer);
+            parameters.put("gameDescription", SharedData.gameDescription);
+
+            CombinedConstraints constraint = new CombinedConstraints();
+            constraint.addConstraints(new String[]{"CoverPercentageConstraint", "SpriteNumberConstraint", "GoalConstraint", "AvatarNumberConstraint"});
+            constraint.setParameters(parameters);
+            this.constrainFitness = constraint.checkConstraint();
         }
-
-
-        double coverPercentage = getCoverPercentage();
-
-        this.parameters.put("coverPercentage", coverPercentage);
-        this.parameters.put("avatarPosition", avatarPosition);
-        this.parameters.put("level", this.level);
-        this.parameters.put("spriteOccurrences", spriteOccurrences);
-        this.parameters.put("listOfGoals", listOfGoals);
-
-        this.constraint.setParameters(this.parameters);
-
-        if(verbose){
-            this.constraint.listConstraints();
-        }
-
-        this.constrainFitness = this.constraint.checkConstraint();
     }
 
     /**

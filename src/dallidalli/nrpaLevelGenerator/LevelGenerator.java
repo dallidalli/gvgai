@@ -45,8 +45,10 @@ public class LevelGenerator extends AbstractLevelGenerator{
         width = (int)Math.min(width, SharedData.MAX_SIZE + size);
         height = (int)Math.min(height, SharedData.MAX_SIZE + size);
 
-        NRPA search = new NRPA(width, height, true);
-        search.level.calculateSoftConstraints(true);
+        boolean useNew = true;
+
+        NRPA search = new NRPA(width, height, true, useNew);
+        search.level.calculateSoftConstraints(true, useNew);
         //LevelEvaluationFunction eval = new LevelEvaluationFunction();
         //eval.generateEvaluationFunction();
 
@@ -62,7 +64,7 @@ public class LevelGenerator extends AbstractLevelGenerator{
         ArrayList<String> evaluated = new ArrayList<>();
         ArrayList<String> value = new ArrayList<>();
         ArrayList<String> avgValue = new ArrayList<>();
-        SharedData.random.setSeed(42);
+        //SharedData.random.setSeed(42);
 
 
         double averageScore = 0;

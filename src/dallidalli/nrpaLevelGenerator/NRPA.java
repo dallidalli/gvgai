@@ -32,6 +32,9 @@ public class NRPA {
     public int numberOfIterations = 100;
     public double alpha = 10;
     public double exploration = 0.000; // 0.002
+    public boolean useNewConstraint;
+
+
     private ArrayList<SpritePointData> tmpSequence = new ArrayList<>();
     private ArrayList<SpritePointData> seq = new ArrayList<>();
     private ArrayList<SpritePointData> actions = new ArrayList<>();
@@ -46,8 +49,9 @@ public class NRPA {
     private Set<Map.Entry<SpritePointData, Double>> others;
     private Set<Map.Entry<Integer, Double>> others2;
 
-    public NRPA(int width, int height, boolean empty) {
+    public NRPA(int width, int height, boolean empty, boolean useNewConstraint) {
 
+        this.useNewConstraint = useNewConstraint;
         level = new GeneratedLevel(width, height);
 
         if (empty) {
@@ -279,7 +283,7 @@ public class NRPA {
     private double getSimulationEval(ArrayList<SpritePointData> seq) {
         getLevel(seq, false);
         double value = 0;
-        level.calculateSoftConstraints(false);
+        level.calculateSoftConstraints(false, useNewConstraint);
         ArrayList<Double> finalFitness = level.calculateFitness(SharedData.EVALUATION_TIME);
         value = level.getConstrainFitness();
         resetLevel(seq);
@@ -575,7 +579,7 @@ public class NRPA {
         }
 
         if (verbose) {
-            level.calculateSoftConstraints(true);
+            level.calculateSoftConstraints(true, useNewConstraint);
             System.out.println(level.getConstrainFitness());
         }
 
@@ -593,7 +597,7 @@ public class NRPA {
     private Double getEvalValue(ArrayList<SpritePointData> seq) {
         getLevel(seq, false);
         double value = 0;
-        level.calculateSoftConstraints(false);
+        level.calculateSoftConstraints(false, useNewConstraint);
         value = level.getConstrainFitness();
         resetLevel(seq);
         return value;

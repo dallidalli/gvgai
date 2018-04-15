@@ -45,8 +45,10 @@ public class LevelGenerator extends AbstractLevelGenerator{
         width = (int)Math.min(width, SharedData.MAX_SIZE + size);
         height = (int)Math.min(height, SharedData.MAX_SIZE + size);
 
-        NMCS search = new NMCS(width, height, true);
-        search.level.calculateSoftConstraints(true);
+        boolean useNew = true;
+
+        NMCS search = new NMCS(width, height, true, useNew);
+        search.level.calculateSoftConstraints(true, useNew);
         ArrayList<SpritePointData> workedActions = new ArrayList<>(search.allPossibleActions);
         //LevelEvaluationFunction eval = new LevelEvaluationFunction();
         //eval.generateEvaluationFunction();
@@ -64,7 +66,7 @@ public class LevelGenerator extends AbstractLevelGenerator{
         ArrayList<String> evaluated = new ArrayList<>();
         ArrayList<String> value = new ArrayList<>();
         ArrayList<String> avgValue = new ArrayList<>();
-        SharedData.random.setSeed(42);
+        //SharedData.random.setSeed(42);
 
 
         Pair<Double, ArrayList<Integer>> result = new Pair<Double, ArrayList<Integer>>(Double.MIN_VALUE, new ArrayList<Integer>());

@@ -10,6 +10,7 @@ public class MCTS{
     public double C = 0.05; //0.05
     public double useSPMCTS = 0;
     public double D = 0; //3.5
+    public boolean useNewConstraints;
 
     public ArrayList<String> allSprites = new ArrayList<String>();
 
@@ -32,11 +33,12 @@ public class MCTS{
     public ArrayList<SpritePointData> freePositions = new ArrayList<SpritePointData>();
     public ArrayList<SpritePointData> totalActions = new ArrayList<>();
 
-    public MCTS(int width, int height, boolean empty, boolean SPMCTS) {
+    public MCTS(int width, int height, boolean empty, boolean SPMCTS, boolean useNewConstraints) {
         if(SPMCTS){
             useSPMCTS = 1;
         }
 
+        this.useNewConstraints = useNewConstraints;
 
         currentLevel = new GeneratedLevel(width, height);
 
@@ -174,7 +176,7 @@ public class MCTS{
             return rollOut(selectedChild);
         } else {
             getLevel(visitedAction, false);
-            currentLevel.calculateSoftConstraints(false);
+            currentLevel.calculateSoftConstraints(false, useNewConstraints);
             double softConstraint = currentLevel.getConstrainFitness();
             resetLevel(visitedAction);
             return softConstraint;
@@ -289,7 +291,7 @@ public class MCTS{
         }
 
         if (verbose) {
-            currentLevel.calculateSoftConstraints(true);
+            currentLevel.calculateSoftConstraints(true, useNewConstraints);
             System.out.println(currentLevel.getConstrainFitness());
         }
 

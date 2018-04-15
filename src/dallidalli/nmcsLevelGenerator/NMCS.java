@@ -17,11 +17,14 @@ public class NMCS {
     public ArrayList<String> allSprites = new ArrayList<>();
     public double possiblePositions;
     public int evaluated = 0;
+    public boolean useNewConstraints;
+
     private ArrayList<SpritePointData> freePositions = new ArrayList<>();
 
-    public NMCS(int width, int height, boolean empty) {
 
+    public NMCS(int width, int height, boolean empty, boolean useNewConstraints) {
 
+        this.useNewConstraints = useNewConstraints;
         level = new GeneratedLevel(width, height);
 
         if (empty) {
@@ -248,7 +251,7 @@ public class NMCS {
         }
 
         if (verbose) {
-            level.calculateSoftConstraints(true);
+            level.calculateSoftConstraints(true, useNewConstraints);
             System.out.println(level.getConstrainFitness());
         }
 
@@ -279,7 +282,7 @@ public class NMCS {
 
         getLevel(seq, false);
         double value = 0;
-        level.calculateSoftConstraints(false);
+        level.calculateSoftConstraints(false, useNewConstraints);
         value = level.getConstrainFitness();
         resetLevel(seq);
         return value;
@@ -289,7 +292,7 @@ public class NMCS {
     private Double getEvalValueRollout(ArrayList<SpritePointData> seq) {
         getLevel(seq, false);
         double value = 0;
-        level.calculateSoftConstraints(false);
+        level.calculateSoftConstraints(false, useNewConstraints);
         value = level.getConstrainFitness();
         resetLevel(seq);
         return value;

@@ -43,7 +43,9 @@ public class LevelGenerator extends AbstractLevelGenerator{
         width = (int)Math.min(width, SharedData.MAX_SIZE + size);
         height = (int)Math.min(height, SharedData.MAX_SIZE + size);
 
-        MCTS search = new MCTS(width, height, true, false);
+        boolean useNew = true;
+
+        MCTS search = new MCTS(width, height, true, false, useNew);
 
         //some variables to make sure not getting out of time
         double worstTime = SharedData.EVALUATION_TIME * 1;
@@ -58,8 +60,8 @@ public class LevelGenerator extends AbstractLevelGenerator{
         ArrayList<String> evaluated = new ArrayList<>();
         ArrayList<String> value = new ArrayList<>();
         ArrayList<String> avgValue = new ArrayList<>();
-        SharedData.random.setSeed(42);
-        double restart = 500000;
+        //SharedData.random.setSeed(42);
+        double restart = 150000;
 
         // System.out.println(numberOfIterations + " " + elapsedTimer.remainingTimeMillis() + " " + avgTime + " " + worstTime);
         while(elapsedTimer.remainingTimeMillis() > 2 * avgTime &&
