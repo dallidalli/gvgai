@@ -67,7 +67,7 @@ public class TestLevelGeneration {
 		int n = 3;
 
 		for (int i = 0; i < n; i++) {
-			LevelGenMachine.generateOneLevel(game, mctsLevelGenerator, recordLevelFile);
+			LevelGenMachine.generateOneLevel(game, nmcsLevelGenerator, recordLevelFile);
 		}
 
 

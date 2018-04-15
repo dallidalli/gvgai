@@ -14,9 +14,6 @@ import java.util.function.Supplier;
 
 public class NRPA {
 
-    public final ArrayList<ArrayList<SpritePointData>> generatedSequences = new ArrayList<>();
-    public final ConcurrentLinkedQueue listOfSequences = new ConcurrentLinkedQueue();
-    public final ConcurrentHashMap tmpMap = new ConcurrentHashMap();
     public ArrayList<SpritePointData> allPossibleActions = new ArrayList<>();
     public GeneratedLevel level;
     public ArrayList<String> allSprites = new ArrayList<>();
@@ -26,11 +23,10 @@ public class NRPA {
 
     public HashMap<ArrayList<SpritePointData>, HashMap<Integer, Double>> keyMap = new HashMap<ArrayList<SpritePointData>, HashMap<Integer, Double>>((int)(10000000 / 0.75) + 1);
 
-    public int cutoff = 10;
+    public int cutoff = 3;
     public int evaluated = 0;
-    public int assumedDepth = 2;
     public int numberOfIterations = 100;
-    public double alpha = 10;
+    public double alpha = 1;
     public double exploration = 0.000; // 0.002
     public boolean useNewConstraint;
 
