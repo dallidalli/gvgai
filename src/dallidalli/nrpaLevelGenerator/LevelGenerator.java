@@ -45,10 +45,8 @@ public class LevelGenerator extends AbstractLevelGenerator{
         width = (int)Math.min(width, SharedData.MAX_SIZE + size);
         height = (int)Math.min(height, SharedData.MAX_SIZE + size);
 
-        boolean useNew = true;
-
-        NRPA search = new NRPA(width, height, true, useNew);
-        search.level.calculateSoftConstraints(true, useNew);
+        NRPA search = new NRPA(width, height, true);
+        search.level.calculateSoftConstraints(true, SharedData.useNewConstraints);
         //LevelEvaluationFunction eval = new LevelEvaluationFunction();
         //eval.generateEvaluationFunction();
 
@@ -58,7 +56,7 @@ public class LevelGenerator extends AbstractLevelGenerator{
         double avgTime = worstTime;
         double totalTime = 0;
         int numberOfIterations = 0;
-        int level = 1;
+        int level = SharedData.NRPA_level;
 
         ArrayList<String> time = new ArrayList<>();
         ArrayList<String> evaluated = new ArrayList<>();
@@ -154,7 +152,7 @@ public class LevelGenerator extends AbstractLevelGenerator{
         //System.out.println("Done");
 
         String name = "NRPA";
-        String setting = SharedData.MIN_SIZE + "x" + SharedData.MAX_SIZE + "_level"+ level + "_cutoff"+ search.cutoff+ "_alpha" + String.valueOf(search.alpha);
+        String setting = SharedData.MIN_SIZE + "x" + SharedData.MAX_SIZE + "_level"+ level + "_cutoff"+ search.cutoff+ "_alpha" + String.valueOf(search.alpha) + "_iterations" + search.numberOfIterations;
 
         CSV.writeCSV(name, setting, time,evaluated,value,avgValue);
 

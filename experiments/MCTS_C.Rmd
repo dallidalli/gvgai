@@ -13,6 +13,7 @@ setwd("C:/Users/dalli/IdeaProjects/gvgai/experiments")
 
 ```{r}
 
+
 folder <- c("MCTS_C/")
 items <- list()
 items[[1]] <- c("MCTS_8.0x8.0_C0.5")

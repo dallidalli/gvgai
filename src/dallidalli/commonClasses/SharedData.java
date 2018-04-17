@@ -30,11 +30,11 @@ public class SharedData {
     /**
      * minimum level size
      */
-    public static final double MIN_SIZE = 8;
+    public static double MIN_SIZE = 5;
     /**
      * maximum level size
      */
-    public static final double MAX_SIZE = 8;
+    public static double MAX_SIZE = 5;
     /**
      * minimum acceptable solution
      */
@@ -88,6 +88,17 @@ public class SharedData {
      * constructive level generator to help in speeding up the level generation process
      */
     public static tracks.levelGeneration.constructiveLevelGenerator.LevelGenerator constructiveGen;
+
+    public static double MCTS_Cvalue = 0.05;
+    public static double MCTS_restart = 150000;
+    public static int NMCS_level = 1;
+    public static boolean NMCS_injected = true;
+    public static boolean useNewConstraints = true;
+    public static double NRPA_alpha = 1;
+    public static int NRPA_cutoff = 50;
+    public static int NRPA_level = 2;
+    public static int NRPA_numIterations = 100;
+    public static int NRPA_B = 3;
 
 }
 

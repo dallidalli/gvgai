@@ -23,12 +23,12 @@ public class NRPA {
 
     public HashMap<ArrayList<SpritePointData>, HashMap<Integer, Double>> keyMap = new HashMap<ArrayList<SpritePointData>, HashMap<Integer, Double>>((int)(10000000 / 0.75) + 1);
 
-    public int cutoff = 3;
+    public int cutoff = SharedData.NRPA_cutoff;
     public int evaluated = 0;
-    public int numberOfIterations = 100;
-    public double alpha = 1;
+    public int numberOfIterations = SharedData.NRPA_numIterations;
+    public double alpha = SharedData.NRPA_alpha;
     public double exploration = 0.000; // 0.002
-    public boolean useNewConstraint;
+    public boolean useNewConstraint = SharedData.useNewConstraints;
 
 
     private ArrayList<SpritePointData> tmpSequence = new ArrayList<>();
@@ -45,9 +45,8 @@ public class NRPA {
     private Set<Map.Entry<SpritePointData, Double>> others;
     private Set<Map.Entry<Integer, Double>> others2;
 
-    public NRPA(int width, int height, boolean empty, boolean useNewConstraint) {
+    public NRPA(int width, int height, boolean empty) {
 
-        this.useNewConstraint = useNewConstraint;
         level = new GeneratedLevel(width, height);
 
         if (empty) {

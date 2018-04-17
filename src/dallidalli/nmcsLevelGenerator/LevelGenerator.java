@@ -45,10 +45,9 @@ public class LevelGenerator extends AbstractLevelGenerator{
         width = (int)Math.min(width, SharedData.MAX_SIZE + size);
         height = (int)Math.min(height, SharedData.MAX_SIZE + size);
 
-        boolean useNew = true;
 
-        NMCS search = new NMCS(width, height, true, useNew);
-        search.level.calculateSoftConstraints(true, useNew);
+        NMCS search = new NMCS(width, height, true);
+        search.level.calculateSoftConstraints(true, SharedData.useNewConstraints);
         ArrayList<SpritePointData> workedActions = new ArrayList<>(search.allPossibleActions);
         //LevelEvaluationFunction eval = new LevelEvaluationFunction();
         //eval.generateEvaluationFunction();
@@ -59,7 +58,8 @@ public class LevelGenerator extends AbstractLevelGenerator{
         double avgTime = worstTime;
         double totalTime = 0;
         int numberOfIterations = 0;
-        int level = 1;
+        int level = SharedData.NMCS_level;
+        boolean injected = SharedData.NMCS_injected;
         double averageScore = 0;
 
         ArrayList<String> time = new ArrayList<>();
@@ -72,7 +72,6 @@ public class LevelGenerator extends AbstractLevelGenerator{
         Pair<Double, ArrayList<Integer>> result = new Pair<Double, ArrayList<Integer>>(Double.MIN_VALUE, new ArrayList<Integer>());
 
         ArrayList<Integer> cutoff = new ArrayList<Integer>();
-        boolean injected = true;
 
         long endTimeMs = System.currentTimeMillis() + elapsedTimer.remainingTimeMillis();
 
@@ -83,7 +82,11 @@ public class LevelGenerator extends AbstractLevelGenerator{
 
             Pair<Double, ArrayList<Integer>> tmp;
 
-            tmp = search.selectAction2(level, new ArrayList<>(workedActions), result, () -> {return System.currentTimeMillis() > endTimeMs;});
+            if(injected){
+                tmp = search.selectAction2(level, new ArrayList<>(workedActions), result, () -> {return System.currentTimeMillis() > endTimeMs;});
+            }else{
+                tmp = search.selectAction2(level, new ArrayList<>(workedActions), new Pair<Double, ArrayList<Integer>>(Double.MIN_VALUE, new ArrayList<Integer>()), () -> {return System.currentTimeMillis() > endTimeMs;});
+            }
 
 
 
@@ -139,7 +142,7 @@ public class LevelGenerator extends AbstractLevelGenerator{
         // System.out.println("Done " + numberOfIterations);
 
         String name = "NMCS";
-        String setting = SharedData.MIN_SIZE + "x" + SharedData.MAX_SIZE + "_level"+ level;
+        String setting = SharedData.MIN_SIZE + "x" + SharedData.MAX_SIZE + "_level"+ level + "_injected" + injected;
 
         CSV.writeCSV(name, setting, time,evaluated,value,avgValue);
 
