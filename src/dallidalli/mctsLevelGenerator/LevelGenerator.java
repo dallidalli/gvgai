@@ -46,12 +46,14 @@ public class LevelGenerator extends AbstractLevelGenerator{
         MCTS search = new MCTS(width, height, true, false);
 
         //some variables to make sure not getting out of time
-        double worstTime = SharedData.EVALUATION_TIME * 1;
-        double avgTime = worstTime;
-        double totalTime = 0;
+        double worstTime = Double.MIN_VALUE;
+        double avgTime = 0.0;
+        double totalTime = 0.0;
+        double lastTime = 0.0;
+        ElapsedCpuTimer timer = new ElapsedCpuTimer();
         int numberOfIterations = 0;
-        double avgScore = 0;
-        double curScore = 0;
+        double avgScore = 0.0;
+        double curScore = 0.0;
 
 
         ArrayList<String> time = new ArrayList<>();
@@ -61,17 +63,23 @@ public class LevelGenerator extends AbstractLevelGenerator{
         //SharedData.random.setSeed(42);
         double restart = SharedData.MCTS_restart;
 
+
         // System.out.println(numberOfIterations + " " + elapsedTimer.remainingTimeMillis() + " " + avgTime + " " + worstTime);
         while(elapsedTimer.remainingTimeMillis() > 2 * avgTime &&
                 elapsedTimer.remainingTimeMillis() > worstTime){
-            ElapsedCpuTimer timer = new ElapsedCpuTimer();
 
             search.selectAction();
             curScore = search.currentValue;
             avgScore += curScore;
 
+            lastTime = timer.elapsedMillis() - totalTime;
+
+            if(lastTime > worstTime){
+                worstTime = lastTime;
+            }
+
             numberOfIterations += 1;
-            totalTime += timer.elapsedMillis();
+            totalTime += lastTime;
             avgTime = totalTime / numberOfIterations;
 
 
@@ -89,45 +97,10 @@ public class LevelGenerator extends AbstractLevelGenerator{
 
                 if(numberOfIterations % restart == 1 && restart != 0){
                     search.restart();
-                } else {
-                    /*double maxVisit = 0, averageVisit = 0, counter = 0, minVisit = 99999;
-
-                    for (int i = 0; i < search.root.getChildren().length; i++) {
-                        if(search.root.getChildren()[i] != null){
-
-                            if(search.root.getChildren()[i].getTotalVisits() >= 0){
-                                counter++;
-                            }
-
-                            averageVisit += search.root.getChildren()[i].getTotalVisits();
-
-                            if(search.root.getChildren()[i].getTotalVisits() > maxVisit){
-                                maxVisit = search.root.getChildren()[i].getTotalVisits();
-                            }
-
-                            if(search.root.getChildren()[i].getTotalVisits() < minVisit){
-                                minVisit = search.root.getChildren()[i].getTotalVisits();
-                            }
-
-                        }
-
-                    }
-
-
-                    double amountOfNodes = search.root.getChildren().length;*/
-
-                    // System.out.println(amountOfNodes + " " + minVisit+" "+ maxVisit+ " "+averageVisit/amountOfNodes + " " +counter/amountOfNodes+ " " +search.visitedIndex.size());
-                    //ArrayList<SpritePointData> current = list.get(0).currentSequence;
-                    // System.out.println(avgScore/numberOfIterations);
-                    //list.get(0).getLevel(current, true);
-                    //list.get(0).resetLevel(current);
-                    // System.out.println(search.bestValue);
-                    // System.out.println(numberOfIterations + " " + search.numberOfNodes + " " + elapsedTimer.remainingTimeMillis() + " " + avgTime + " " + worstTime);
                 }
-
-
             }
         }
+
 
         //TreeView tv = new TreeView(root);
         //tv.showTree("After " + numberOfIterations + " play outs");

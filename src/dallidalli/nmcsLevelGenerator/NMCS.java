@@ -128,7 +128,7 @@ public class NMCS {
         calcActions();
     }
 
-    public Pair<Double, ArrayList<Integer>> selectAction2(int level, ArrayList<SpritePointData> currentState, Pair<Double, ArrayList<Integer>> oldResult, Supplier<Boolean> isCanceled){
+    public Pair<Double, ArrayList<Integer>> selectAction2(int level, ArrayList<SpritePointData> currentState, Pair<Double, ArrayList<Integer>> oldResult){
         int ply = 0;
         double fitness = 0;
         double bestScore = oldResult.first;
@@ -137,7 +137,7 @@ public class NMCS {
         ArrayList<Integer> bestSeq = oldResult.second;
         ArrayList<SpritePointData> backupState = new ArrayList<>(currentState);
 
-        while (!isTerminal(currentState.size(), fitness) && !isCanceled.get()) {
+        while (!isTerminal(currentState.size(), fitness)) {
 
             double tmpBest = Double.MIN_VALUE;
             ArrayList<Integer> tmpSeq = new ArrayList<>();
@@ -160,7 +160,7 @@ public class NMCS {
                 for(int i = 0; i < currentState.size(); i++){
                     ArrayList<SpritePointData> copy = new ArrayList<>(currentState);
 
-                    Pair<Double, ArrayList<Integer>> move = selectAction2(level-1, customActionsSingleCalc(copy, i), new Pair<Double, ArrayList<Integer>>(Double.MIN_VALUE, new ArrayList<Integer>()), isCanceled);
+                    Pair<Double, ArrayList<Integer>> move = selectAction2(level-1, customActionsSingleCalc(copy, i), new Pair<Double, ArrayList<Integer>>(Double.MIN_VALUE, new ArrayList<Integer>()));
                     move.second.add(0,i);
 
                     if(move.first > tmpBest){

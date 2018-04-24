@@ -54,12 +54,16 @@ public class LevelGenerator extends AbstractLevelGenerator{
 
 
         //some variables to make sure not getting out of time
-        double worstTime = SharedData.EVALUATION_TIME * 1;
-        double avgTime = worstTime;
+        double worstTime = Double.MIN_VALUE;
+        double avgTime = 0.0;
         double totalTime = 0;
+        double lastTime = 0.0;
+        ElapsedCpuTimer timer = new ElapsedCpuTimer();
+
         int numberOfIterations = 0;
         int level = SharedData.NMCS_level;
         boolean injected = SharedData.NMCS_injected;
+        Pair<Double, ArrayList<Integer>> tmp;
         double averageScore = 0;
 
         ArrayList<String> time = new ArrayList<>();
@@ -78,20 +82,23 @@ public class LevelGenerator extends AbstractLevelGenerator{
         System.out.println(numberOfIterations + " " + elapsedTimer.remainingTimeMillis() + " " + avgTime + " " + worstTime);
         while(elapsedTimer.remainingTimeMillis() > 2 * avgTime &&
                 elapsedTimer.remainingTimeMillis() > worstTime){
-            ElapsedCpuTimer timer = new ElapsedCpuTimer();
 
-            Pair<Double, ArrayList<Integer>> tmp;
 
             if(injected){
-                tmp = search.selectAction2(level, new ArrayList<>(workedActions), result, () -> {return System.currentTimeMillis() > endTimeMs;});
+                tmp = search.selectAction2(level, workedActions, result);
             }else{
-                tmp = search.selectAction2(level, new ArrayList<>(workedActions), new Pair<Double, ArrayList<Integer>>(Double.MIN_VALUE, new ArrayList<Integer>()), () -> {return System.currentTimeMillis() > endTimeMs;});
+                tmp = search.selectAction2(level, workedActions, new Pair<Double, ArrayList<Integer>>(Double.MIN_VALUE, new ArrayList<Integer>()));
             }
 
 
-
-
             averageScore += tmp.first;
+
+            lastTime = timer.elapsedMillis() - totalTime;
+
+            if(lastTime > worstTime){
+                worstTime = lastTime;
+            }
+
             if(result == null){
                 result = tmp;
             }else {
@@ -102,28 +109,15 @@ public class LevelGenerator extends AbstractLevelGenerator{
 
 
             numberOfIterations += 1;
-            totalTime += timer.elapsedMillis();
+            totalTime += lastTime;
             avgTime = totalTime / numberOfIterations;
 
 
-            time.add(String.valueOf(totalTime));
-            evaluated.add(String.valueOf(search.evaluated));
-            value.add(String.valueOf(tmp.first));
-            avgValue.add(String.valueOf((averageScore / numberOfIterations)));
-
-
-            if(numberOfIterations % 20 == 0){
-                // System.out.println(averageScore/numberOfIterations);
-                // System.out.println(result.first);
-                //search.getLevel(tmp.second, true).getLevelMapping();
-                //search.resetLevel(tmp.second);
-                // System.out.println(numberOfIterations + " " + search.evaluated +" "+ elapsedTimer.remainingTimeMillis() + " " + avgTime + " " + worstTime);
-/*
-                if(!injected){
-                    injected = true;
-                    cutoff.add(result.second.get(0));
-                    //search.customActionsSingleCalc(workedActions, cutoff.get(0));
-                } */
+            if(numberOfIterations % 10 == 1){
+                time.add(String.valueOf(totalTime));
+                evaluated.add(String.valueOf(search.evaluated));
+                value.add(String.valueOf(tmp.first));
+                avgValue.add(String.valueOf((averageScore / numberOfIterations)));
             }
         }
 
