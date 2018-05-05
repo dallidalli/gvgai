@@ -61,6 +61,19 @@ public class TestLevelGeneration {
 		int gameIdx = 90;
 
 
+		SharedData.eval_weights.add(3.0); //AccessibilityConstraint
+		SharedData.eval_weights.add(3.0); //AvatarNumberConstraint
+		SharedData.eval_weights.add(1.0); //ConnectedWallsConstraint
+		SharedData.eval_weights.add(2.0); //CoverPercentageConstraint
+		SharedData.eval_weights.add(3.0); //EndsInitiallyConstraint
+		SharedData.eval_weights.add(1.0); //GoalDistanceConstraint
+		SharedData.eval_weights.add(1.0); //NeutralHarmfulRatioConstraint
+		SharedData.eval_weights.add(3.0); //SimplestAvatarConstraint
+		SharedData.eval_weights.add(2.0); //SpriteNumberConstraint
+		SharedData.eval_weights.add(2.0); //SpaceAroundAvatarConstraint
+		SharedData.eval_weights.add(1.0); //SymmetryConstraint
+
+
 		// 1. This starts a game, in a generated level created by a specific level generator
 		//if(LevelGenMachine.generateOneLevel(game, mctsLevelGenerator, recordLevelFile)){
 		//    LevelGenMachine.playOneGeneratedLevel(game, recordActionsFile, recordLevelFile, seed);

@@ -11,7 +11,7 @@ public class CombinedConstraints extends AbstractConstraint{
 	 * array of all constraints need to be checked
 	 */
 	private ArrayList<AbstractConstraint> constraints;
-	
+	private ArrayList<Double> weights;
 	/**
 	 * 
 	 */
@@ -59,15 +59,28 @@ public class CombinedConstraints extends AbstractConstraint{
 	@Override
 	public double checkConstraint() {
 		double score = 0;
-		for(AbstractConstraint c:constraints){
-			score += c.checkConstraint();
+		double weightsSum = 0;
+
+		for(int i = 0; i < constraints.size(); i++){
+			if(weights.get(i) > 0){
+				double tmpScore = (weights.get(i) * constraints.get(i).checkConstraint());
+				//System.out.println(i + " " + tmpScore);
+				score += tmpScore;
+				weightsSum += weights.get(i);
+			}
+
 		}
-		return score / constraints.size();
+
+		return score / weightsSum;
 	}
 
 	public void listConstraints() {
 		for(AbstractConstraint c:constraints){
 			System.out.println(c.getClass() + ": "+ c.checkConstraint());
 		}
+	}
+
+	public void setWeights(ArrayList<Double> weights){
+		this.weights = weights;
 	}
 }

@@ -64,8 +64,16 @@ public class Policy {
         }
     }
 
-    public Policy(Policy other){
-        policy = new HashMap(other.policy);
+    public Policy(Policy other, boolean deep){
+        if(deep){
+            policy = new HashMap<List<Integer>, HashMap<Integer, Double>>();
+
+            for (Map.Entry<List<Integer>, HashMap<Integer, Double>> original:other.policy.entrySet()) {
+                policy.put(original.getKey(), new HashMap<>(original.getValue()));
+            }
+        }else{
+            policy = new HashMap(other.policy);
+        }
     }
 
     public void verifyState(List<Integer> state, List<Integer> actionIndicies, int numberOfSprites){

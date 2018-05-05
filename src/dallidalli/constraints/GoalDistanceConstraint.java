@@ -19,7 +19,7 @@ public class GoalDistanceConstraint extends AbstractConstraint{
         }
 
 
-        double maxDistance = new Point(0,0).distance(new Point(width-1, height-1));
+        double maxDistance = Math.max(width-2, height-2);
 
         if(listOfGoals.size() == 0){
             return 0;
@@ -33,6 +33,6 @@ public class GoalDistanceConstraint extends AbstractConstraint{
             }
         }
 
-        return smallestDistance/maxDistance;
+        return Math.min(smallestDistance/maxDistance, 1);
     }
 }

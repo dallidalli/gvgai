@@ -110,7 +110,7 @@ public class NRPA2 {
 
         for(int i = 0; i <= SharedData.NRPA_level; i++){
             scoreL.add(Double.MIN_VALUE);
-            policiesL.add(new Policy(emptyPolicy));
+            policiesL.add(new Policy(emptyPolicy, true));
         }
 
         //numberOfIterations = (int) (allPossibleActions.size()*0.3 + cutoff*allPossibleActions.size()*0.003);
@@ -147,6 +147,7 @@ public class NRPA2 {
     public Pair<Pair<Double, ArrayList<Integer>>, Policy> recursiveNRPA(int level, Policy p, Pair<Double, ArrayList<Integer>> prevBest){
         //double best = scoreL.get(level);
         //double best = Double.MIN_VALUE;
+
 
         Pair<Pair<Double, ArrayList<Integer>>, Policy> bestResult, curResult;
 
@@ -203,23 +204,52 @@ public class NRPA2 {
 
         }else {
 
+
+
             bestResult = new Pair<>(prevBest, p);
+            boolean foundBetter = false;
+
+            if(level == SharedData.NRPA_level){
+                foundBetter = true;
+            }
 
             for (int i = 0; i < numberOfIterations; i++) {
-                curResult = recursiveNRPA(level-1, new Policy(p), new Pair<>(Double.MIN_VALUE, new ArrayList<Integer>()));
+                if(level > 1){
+                    curResult = recursiveNRPA(level-1, new Policy(p, true), new Pair<>(Double.MIN_VALUE, new ArrayList<Integer>()));
+                } else {
+                    curResult = recursiveNRPA(level-1, new Policy(p, false), new Pair<>(Double.MIN_VALUE, new ArrayList<Integer>()));
+
+                }
 
                 if(curResult.first.first >= bestResult.first.first){
+                    if(curResult.first.first >= bestResult.first.first){
+                        foundBetter = true;
+                        //System.out.println("better");
+                    }
+
                     bestResult = curResult;
                 }
 
-                p = adapt(bestResult.first, p);
+
+                if(foundBetter){
+                    p = adapt(bestResult.first, p);
+                    foundBetter = false;
+                }
 
             }
 
-
+            /*
+            if(foundBetter){
+                p = adapt(bestResult.first, p);
+            }
+            */
         }
 
         bestResult.second = p;
+
+        if(level == 1){
+            //System.out.println(p.size());
+        }
         //scoreL.set(level, bestResult.first.first);
         return bestResult;
     }
@@ -312,7 +342,7 @@ public class NRPA2 {
                         newBeam.add(beam.get(j));
                     }
 
-                    ArrayList<Pair<Pair<Double, ArrayList<Integer>>, Policy>> beam1 = recursiveBeamNRPA(level-1, new Policy(p),null);
+                    ArrayList<Pair<Pair<Double, ArrayList<Integer>>, Policy>> beam1 = recursiveBeamNRPA(level-1, new Policy(p, true),null);
 
                     for (int k = 0; k < beam1.size(); k++) {
 
@@ -351,7 +381,7 @@ public class NRPA2 {
     }
 
     private Policy adapt(Pair<Double, ArrayList<Integer>> bestResult, Policy p){
-        Policy newP = new Policy(p);
+        Policy newP = new Policy(p, true);
 
         ArrayList<Integer> state = new ArrayList<>();
         ArrayList<Integer> legalActions = new ArrayList<>(actionIndicies);

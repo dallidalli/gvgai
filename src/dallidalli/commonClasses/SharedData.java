@@ -3,6 +3,7 @@ package dallidalli.commonClasses;
 import core.game.GameDescription;
 import tools.GameAnalyzer;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 public class SharedData {
@@ -30,11 +31,11 @@ public class SharedData {
     /**
      * minimum level size
      */
-    public static double MIN_SIZE = 5;
+    public static double MIN_SIZE = 10;
     /**
      * maximum level size
      */
-    public static double MAX_SIZE = 5;
+    public static double MAX_SIZE = 10;
     /**
      * minimum acceptable solution
      */
@@ -95,10 +96,13 @@ public class SharedData {
     public static boolean NMCS_injected = true;
     public static boolean useNewConstraints = true;
     public static double NRPA_alpha = 1;
-    public static int NRPA_cutoff = 50;
-    public static int NRPA_level = 2;
-    public static int NRPA_numIterations = 100;
-    public static int NRPA_B = 3;
+    public static int NRPA_cutoff = 1;
+    public static int NRPA_level = 1;
+    public static int NRPA_numIterations = 100; //(int) (5000/NRPA_level/MAX_SIZE);
+    public static int NRPA_B = 4;
+
+    public static ArrayList<Double> eval_weights = new ArrayList<Double>();
+
 
 }
 

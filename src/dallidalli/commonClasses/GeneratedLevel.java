@@ -79,6 +79,9 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
         this.fixedParameters = new HashMap<String, Object>();
         this.constraint = new CombinedConstraints();
         this.constraint.addConstraints(new String[]{"AccessibilityConstraint", "AvatarNumberConstraint", "ConnectedWallsConstraint", "CoverPercentageConstraint", "EndsInitiallyConstraint", "GoalDistanceConstraint", "NeutralHarmfulRatioConstraint", "SimplestAvatarConstraint", "SpriteNumberConstraint", "SpaceAroundAvatarConstraint", "SymmetryConstraint"});
+        this.constraint.setWeights(SharedData.eval_weights);
+
+
         this.positions = new ArrayList<SpritePointData>();
 
         this.objects = new HashMap<String, Integer>();

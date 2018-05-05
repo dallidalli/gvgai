@@ -5,6 +5,7 @@ import java.util.ArrayList;
 public class SymmetryConstraint extends AbstractConstraint {
 
     public ArrayList<String>[][] level;
+    public ArrayList<String> avatarSpritesIn;
 
     @Override
     public double checkConstraint() {
@@ -20,6 +21,9 @@ public class SymmetryConstraint extends AbstractConstraint {
             }
         }
 
+        if(sum/counter > 0.9){
+            return 1;
+        }
         return sum/counter;
     }
 
@@ -52,16 +56,25 @@ public class SymmetryConstraint extends AbstractConstraint {
         sprites.add(sprite3);
         sprites.add(sprite4);
 
-        double counter = 0;
+            double counter = 0;
         for(int i = 0; i < sprites.size(); i++){
-            for(int j = 0; j < sprites.size(); j++){
-                if(i != j){
-                    if(sprites.get(i).equals(sprites.get(j))){
-                        sum++;
-                    }
-                    counter++;
-                }
+            if(avatarSpritesIn.contains(sprites.get(i))){
+                return 1;
             }
+            if(sprites.get(i).equals(sprites.get(0))){
+                sum++;
+            }
+            if(sprites.get(i).equals(sprites.get(1))){
+                sum++;
+            }
+            if(sprites.get(i).equals(sprites.get(2))){
+                sum++;
+            }
+            if(sprites.get(i).equals(sprites.get(3))){
+                sum++;
+            }
+
+            counter = counter +4;
         }
 
         return sum/counter;

@@ -42,7 +42,7 @@ public class SpaceAroundAvatarConstraint extends AbstractConstraint {
         while (next.size() > 0) {
             countPos++;
             Pair<Integer, Integer> cur = next.remove(0);
-            if (level[cur.second][cur.first].isEmpty()) {
+            if (level[cur.second][cur.first].isEmpty() || (cur.first == avatarPosition.first && cur.second == avatarPosition.second)) {
                 freePos++;
             }
 

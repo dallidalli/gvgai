@@ -1,6 +1,7 @@
 package dallidalli.constraints;
 
 import core.game.GameDescription;
+import tools.GameAnalyzer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,6 +11,8 @@ public class EndsInitiallyConstraint extends AbstractConstraint {
     public ArrayList<GameDescription.TerminationData> terminationConditions;
 
     public HashMap<String, Integer> spriteOccurrences;
+
+    public GameAnalyzer gameAnalyzer;
 
     @Override
     public double checkConstraint() {
@@ -22,10 +25,12 @@ public class EndsInitiallyConstraint extends AbstractConstraint {
 
             if(td.type.equals("SpriteCounter")){
                 for (String sprite:td.sprites) {
-                    numSubCondition++;
+                    if(gameAnalyzer.checkIfSpawned(sprite) != 0){
+                        numSubCondition++;
 
-                    if (spriteOccurrences.get(sprite) > td.limit){
-                        subTotal++;
+                        if (spriteOccurrences.get(sprite) > td.limit){
+                            subTotal++;
+                        }
                     }
 
                 }
