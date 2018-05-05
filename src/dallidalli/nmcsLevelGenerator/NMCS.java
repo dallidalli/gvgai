@@ -18,6 +18,8 @@ public class NMCS {
     public double possiblePositions;
     public int evaluated = 0;
     public boolean useNewConstraint = SharedData.useNewConstraints;
+    int countBetter = 0;
+    int countWorse = 0;
 
     private ArrayList<SpritePointData> freePositions = new ArrayList<>();
 
@@ -134,10 +136,12 @@ public class NMCS {
         double bestScore = oldResult.first;
         ArrayList<Integer> curSeq = new ArrayList<Integer>();
         ArrayList<SpritePointData> curSeqAction = new ArrayList<SpritePointData>();
-        ArrayList<Integer> bestSeq = oldResult.second;
+        ArrayList<Integer> bestSeq = new ArrayList<>(oldResult.second);
+
         ArrayList<SpritePointData> backupState = new ArrayList<>(currentState);
 
         while (!isTerminal(currentState.size(), fitness)) {
+
 
             double tmpBest = Double.MIN_VALUE;
             ArrayList<Integer> tmpSeq = new ArrayList<>();
@@ -146,14 +150,14 @@ public class NMCS {
             if(level == 1){
 
                 for(int i = 0; i < currentState.size(); i++){
-                    ArrayList<SpritePointData> copy = new ArrayList<>(currentState);
-
-                    Pair<Double, ArrayList<Integer>> move = rollout(copy, i);
+                    Pair<Double, ArrayList<Integer>> move = rollout(new ArrayList<>(currentState), i);
 
                     if(move.first > tmpBest){
                         tmpBest = move.first;
                         tmpSeq = new ArrayList<Integer>(move.second);
                     }
+
+                    //System.out.println(currentState.size());
                 }
             } else {
 
@@ -168,7 +172,7 @@ public class NMCS {
                         tmpSeq = new ArrayList<>(move.second);
                     }
 
-
+                    //System.out.println(currentState.size());
                 }
             }
 
@@ -178,6 +182,10 @@ public class NMCS {
                 ply = 0;
             }
 
+            if(ply >= bestSeq.size() && ply != 0){
+                break;
+            }
+
             bestIndex = bestSeq.get(ply);
             curSeq.add(bestIndex);
             curSeqAction.add(currentState.get(bestIndex));
@@ -185,9 +193,12 @@ public class NMCS {
             currentState = customActionsSingleCalc(currentState, bestIndex);
 
             ply++;
+
+
+
         }
         //System.out.println(evaluated+ " " + currentState.size() + " "+ bestSeq.size() + " " + curSeq.size());
-
+        double preFitness = fitness;
         fitness = getEvalValueRollout(curSeqAction);
 
         /*
@@ -201,14 +212,16 @@ public class NMCS {
         }
         */
 
-        return new Pair<Double, ArrayList<Integer>>(fitness, curSeq);
-        /*
-        if(fitness > bestScore){
-            return new Pair<Double, ArrayList<SpritePointData>>(fitness, curSeq);
+        //return new Pair<Double, ArrayList<Integer>>(fitness, curSeq);
+
+        if(fitness >= bestScore){
+            countBetter++;
+            return new Pair<Double, ArrayList<Integer>>(fitness, curSeq);
         } else {
-            return new Pair<Double, ArrayList<SpritePointData>>(bestScore, bestSeq);
+            countWorse++;
+            return new Pair<Double, ArrayList<Integer>>(bestScore, bestSeq);
         }
-        */
+
     }
 
 
@@ -291,16 +304,18 @@ public class NMCS {
     private Double getEvalValueRollout(ArrayList<SpritePointData> seq) {
         getLevel(seq, false);
         double value = 0;
-        level.calculateSoftConstraints(false, useNewConstraint);
-        value = level.getConstrainFitness();
+        //level.calculateSoftConstraints(false, useNewConstraint);
+        //value = level.getConstrainFitness();
+        value = level.calculateFitness(SharedData.EVALUATION_TIME);
         resetLevel(seq);
         return value;
     }
 
     private boolean isTerminal(double size, double fitness) {
         double currentCoverage = (possiblePositions - (size / allSprites.size())) / possiblePositions;
+        double desiredCov = SharedData.MIN_COVER_PERCENTAGE + SharedData.random.nextDouble()*(SharedData.MAX_COVER_PERCENTAGE - SharedData.MIN_COVER_PERCENTAGE);
         //System.out.println((currentCoverage > SharedData.MAX_COVER_PERCENTAGE) + " " +  (getSoftValue(seq) >= 1) + " "+ seq.size());
-        return ((currentCoverage >= SharedData.MAX_COVER_PERCENTAGE) || fitness >= 1);
+        return ((currentCoverage >= desiredCov) || fitness >= 1);
     }
 
     public ArrayList<SpritePointData> customActionsSingleCalc(ArrayList<SpritePointData> allActions, int indexKnown) {

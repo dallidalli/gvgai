@@ -28,7 +28,7 @@ public class CombinedConstraintsOld extends OldAbstractConstraint {
 	public void addConstraints(String[] conStrings){
 		for(String c:conStrings){
 			try{
-				Class constrainClass = Class.forName("dallidalli.constraints.old" + c);
+				Class constrainClass = Class.forName("dallidalli.constraints.old." + c);
 				Constructor constrainConstructor = constrainClass.getConstructor();
 				OldAbstractConstraint constraint = (OldAbstractConstraint) constrainConstructor.newInstance();
 				constraints.add(constraint);

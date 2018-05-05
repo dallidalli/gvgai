@@ -85,9 +85,9 @@ public class LevelGenerator extends AbstractLevelGenerator{
 
 
             if(injected){
-                tmp = search.selectAction2(level, workedActions, result);
+                tmp = search.selectAction2(level, new ArrayList<>(search.allPossibleActions), new Pair<Double, ArrayList<Integer>>(result.first, new ArrayList<Integer>(result.second)));
             }else{
-                tmp = search.selectAction2(level, workedActions, new Pair<Double, ArrayList<Integer>>(Double.MIN_VALUE, new ArrayList<Integer>()));
+                tmp = search.selectAction2(level, new ArrayList<>(search.allPossibleActions), new Pair<Double, ArrayList<Integer>>(Double.MIN_VALUE, new ArrayList<Integer>()));
             }
 
 
@@ -113,11 +113,16 @@ public class LevelGenerator extends AbstractLevelGenerator{
             avgTime = totalTime / numberOfIterations;
 
 
-            if(numberOfIterations % 10 == 1){
+            if(numberOfIterations % 10 == 0){
                 time.add(String.valueOf(totalTime));
                 evaluated.add(String.valueOf(search.evaluated));
                 value.add(String.valueOf(tmp.first));
                 avgValue.add(String.valueOf((averageScore / numberOfIterations)));
+                System.out.println(tmp.first);
+                System.out.println((averageScore / numberOfIterations));
+                System.out.println(numberOfIterations + " " + search.evaluated);
+                System.out.println(search.countBetter);
+                System.out.println(search.countWorse);
             }
         }
 

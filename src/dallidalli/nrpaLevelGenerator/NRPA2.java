@@ -420,21 +420,6 @@ public class NRPA2 {
     }
 
 
-
-    private double getSimulationEval(ArrayList<SpritePointData> seq) {
-        getLevel(seq, false);
-        double value = 0;
-        level.calculateSoftConstraints(false, useNewConstraint);
-        ArrayList<Double> finalFitness = level.calculateFitness(SharedData.EVALUATION_TIME);
-        value = level.getConstrainFitness();
-        resetLevel(seq);
-        if(value >= 1){
-            return (finalFitness.get(0) + finalFitness.get(1))/2;
-        } else {
-            return value;
-        }
-    }
-
     public ArrayList<SpritePointData> translate(ArrayList<Integer> seq){
         ArrayList<SpritePointData> tmpSeq = new ArrayList<>();
 
@@ -472,16 +457,18 @@ public class NRPA2 {
     private Double getEvalValue(ArrayList<SpritePointData> seq) {
         getLevel(seq, false);
         double value = 0;
-        level.calculateSoftConstraints(false, useNewConstraint);
-        value = level.getConstrainFitness();
+        //level.calculateSoftConstraints(false, useNewConstraint);
+        //value = level.getConstrainFitness();
+        value = level.calculateFitness(SharedData.EVALUATION_TIME);
         resetLevel(seq);
         return value;
     }
 
     private boolean isTerminal(ArrayList<Integer> actions, double fitness) {
         double currentCoverage = (possiblePositions - (actions.size() / allSprites.size())) / possiblePositions;
+        double desiredCov = SharedData.MIN_COVER_PERCENTAGE + SharedData.random.nextDouble()*(SharedData.MAX_COVER_PERCENTAGE - SharedData.MIN_COVER_PERCENTAGE);
         //System.out.println((currentCoverage > SharedData.MAX_COVER_PERCENTAGE) + " " +  (getSoftValue(seq) >= 1) + " "+ seq.size());
-        return ((currentCoverage >= SharedData.MAX_COVER_PERCENTAGE) || fitness >= 1);
+        return ((currentCoverage >= desiredCov) || fitness >= 1);
     }
 
 }

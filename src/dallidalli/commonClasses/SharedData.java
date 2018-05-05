@@ -15,11 +15,11 @@ public class SharedData {
     /**
      * the amount of time to evaluate a single level
      */
-    public static final long EVALUATION_TIME = 2000;
+    public static final long EVALUATION_TIME = 1000;
     /**
      * The amount of time given for each time step
      */
-    public static final long EVALUATION_STEP_TIME = 40;
+    public static final long EVALUATION_STEP_TIME = 30;
     /**
      * very small value
      */
@@ -39,7 +39,7 @@ public class SharedData {
     /**
      * minimum acceptable solution
      */
-    public static final double MIN_SOLUTION_LENGTH = 200;
+    public static final double MIN_SOLUTION_LENGTH = 120;
     /**
      * minimum acceptable do nothing steps before dying
      */
@@ -90,6 +90,8 @@ public class SharedData {
      */
     public static tracks.levelGeneration.constructiveLevelGenerator.LevelGenerator constructiveGen;
 
+    public static double DRAW_FITNESS = 0.5;
+
     public static double MCTS_Cvalue = 0.05;
     public static double MCTS_restart = 150000;
     public static int NMCS_level = 1;
@@ -97,7 +99,7 @@ public class SharedData {
     public static boolean useNewConstraints = true;
     public static double NRPA_alpha = 1;
     public static int NRPA_cutoff = 1;
-    public static int NRPA_level = 1;
+    public static int NRPA_level = 2;
     public static int NRPA_numIterations = 100; //(int) (5000/NRPA_level/MAX_SIZE);
     public static int NRPA_B = 4;
 

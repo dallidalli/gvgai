@@ -19,7 +19,9 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
 
     private HashMap<String, Integer> objects;
     private CombinedConstraints constraint;
+    private dallidalli.constraints.old.CombinedConstraintsOld constraintSimulation;
     private HashMap<String, Object> parameters;
+    private HashMap<String, Object> parametersSimulation;
     private HashMap<String, Object> fixedParameters;
     private ArrayList<SpritePointData> positions;
 
@@ -111,6 +113,15 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
         this.fixedParameters.put("height", level.length);
 
         this.constraint.setParameters(this.fixedParameters);
+
+
+        this.constraintSimulation = new dallidalli.constraints.old.CombinedConstraintsOld();
+        this.parametersSimulation = new HashMap<>();
+        parametersSimulation.put("minSolutionLength", SharedData.MIN_SOLUTION_LENGTH);
+        parametersSimulation.put("minDoNothingSteps", SharedData.MIN_DOTHING_STEPS);
+        constraintSimulation.addConstraints(new String[]{"SolutionLengthConstraintOld", "DeathConstraintOld", "WinConstraintOld"});
+
+
 
         //initialize the hashmap with all the sprite names
         for(GameDescription.SpriteData sprite:allSprites){
@@ -413,10 +424,11 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
      * @return	StateObservation for the current level
      */
     private StateObservation getStateObservation(){
+        /*
         if(stateObs != null){
             return stateObs;
         }
-
+        */
         LevelMapping levelMapping = getLevelMapping();
         String levelString = getLevelString(levelMapping);
         stateObs = SharedData.gameDescription.testLevel(levelString, levelMapping.getCharMapping());
@@ -594,8 +606,8 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
             parameters.put("gameAnalyzer", SharedData.gameAnalyzer);
             parameters.put("gameDescription", SharedData.gameDescription);
 
-            CombinedConstraints constraint = new CombinedConstraints();
-            constraint.addConstraints(new String[]{"CoverPercentageConstraint", "SpriteNumberConstraint", "GoalConstraint", "AvatarNumberConstraint"});
+            dallidalli.constraints.old.CombinedConstraintsOld constraint = new dallidalli.constraints.old.CombinedConstraintsOld();
+            constraint.addConstraints(new String[]{"CoverPercentageConstraintOld", "SpriteNumberConstraintOld", "GoalConstraintOld", "AvatarNumberConstraintOld"});
             constraint.setParameters(parameters);
             this.constrainFitness = constraint.checkConstraint();
         }
@@ -606,11 +618,12 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
      * @param time	amount of time to evaluate the level
      * @return		current fitness of the level
      */
-    public ArrayList<Double> calculateFitness(long time){
-        if(!this.calculated){
+    public double calculateFitness(long time){
+        calculateSoftConstraints(false, true);
+
+        if(this.constrainFitness >= 0.91){
             constructAgent();
 
-            this.calculated = true;
             StateObservation stateObs = getStateObservation();
 
             //Play the game using the best agent
@@ -646,23 +659,21 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
             //calculate the constrain fitness by applying all different constraints
             HashMap<String, Object> parameters = new HashMap<String, Object>();
             parameters.put("solutionLength", bestSol.size());
-            parameters.put("minSolutionLength", SharedData.MIN_SOLUTION_LENGTH);
             parameters.put("doNothingSteps", doNothingLength);
             parameters.put("doNothingState", doNothingState.getGameWinner());
             parameters.put("bestPlayer", bestState.getGameWinner());
-            parameters.put("minDoNothingSteps", SharedData.MIN_DOTHING_STEPS);
 
-            CombinedConstraints constraint = new CombinedConstraints();
-            constraint.addConstraints(new String[]{"SolutionLengthConstraint", "DeathConstraint", "WinConstraint"});
-            constraint.setParameters(parameters);
-            constrainFitness += constraint.checkConstraint();
+
+            constraintSimulation.setParameters(parameters);
+            double oldFitness = constrainFitness;
+            constrainFitness += constraintSimulation.checkConstraint();
             constrainFitness /= 2;
 
             System.out.println("SolutionLength:" + bestSol.size() + " doNothingSteps:" + doNothingLength +" bestPlayer:" + bestState.getGameWinner());
 
 
             //calculate the fitness if it satisfied all the constraints
-            if(constrainFitness >= 1){
+            if(constrainFitness >= oldFitness){
                 StateObservation naiveState = null;
                 for(int i = 0; i< SharedData.REPETITION_AMOUNT; i++){
                     StateObservation tempState = stateObs.copy();
@@ -675,16 +686,29 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
                 double scoreDiffScore = getGameScore(bestState.getGameScore() - naiveState.getGameScore(), maxScore);
                 double ruleScore = getUniqueRuleScore(bestState, SharedData.MIN_UNIQUE_RULE_NUMBER);
 
+                fitness.clear();
                 fitness.add(scoreDiffScore);
                 fitness.add(ruleScore);
+
+
+                //this.automatedAgent = null;
+                //this.naiveAgent = null;
+                //this.stateObs = null;
+
+                return (((fitness.get(0)+fitness.get(1))/2) + constrainFitness)/2;
+            }else{
+                //this.automatedAgent = null;
+                //this.naiveAgent = null;
+                //this.stateObs = null;
+
+                return constrainFitness/2;
             }
 
-            this.automatedAgent = null;
-            this.naiveAgent = null;
-            this.stateObs = null;
+
+        }else{
+            return constrainFitness/4;
         }
 
-        return fitness;
     }
 
     /**

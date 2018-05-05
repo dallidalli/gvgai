@@ -275,20 +275,6 @@ public class NRPA {
 
     }
 
-    private double getSimulationEval(ArrayList<SpritePointData> seq) {
-        getLevel(seq, false);
-        double value = 0;
-        level.calculateSoftConstraints(false, useNewConstraint);
-        ArrayList<Double> finalFitness = level.calculateFitness(SharedData.EVALUATION_TIME);
-        value = level.getConstrainFitness();
-        resetLevel(seq);
-        if(value >= 1){
-            return (finalFitness.get(0) + finalFitness.get(1))/2;
-        } else {
-            return value;
-        }
-    }
-
     private MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Double> adaptPolicy(MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Double> currentPolicy, ArrayList<SpritePointData> seq) {
         tmpPol = (MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Double>) currentPolicy.clone();
 
@@ -592,8 +578,9 @@ public class NRPA {
     private Double getEvalValue(ArrayList<SpritePointData> seq) {
         getLevel(seq, false);
         double value = 0;
-        level.calculateSoftConstraints(false, useNewConstraint);
-        value = level.getConstrainFitness();
+        //level.calculateSoftConstraints(false, useNewConstraint);
+        //value = level.getConstrainFitness();
+        value = level.calculateFitness(SharedData.EVALUATION_TIME);
         resetLevel(seq);
         return value;
     }

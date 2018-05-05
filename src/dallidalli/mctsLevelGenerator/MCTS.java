@@ -277,8 +277,8 @@ public class MCTS{
 
     private boolean isTerminal(double fitness) {
         double currentCoverage = (possiblePositions - (workedActions.size() / allSprites.size())) / possiblePositions;
-
-        return ((currentCoverage >= SharedData.MAX_COVER_PERCENTAGE) || (fitness >= 1));
+        double desiredCov = SharedData.MIN_COVER_PERCENTAGE + SharedData.random.nextDouble()*(SharedData.MAX_COVER_PERCENTAGE - SharedData.MIN_COVER_PERCENTAGE);
+        return ((currentCoverage >= desiredCov) || (fitness >= 1));
     }
 
     public GeneratedLevel getLevel(ArrayList<SpritePointData> prev, boolean verbose) {

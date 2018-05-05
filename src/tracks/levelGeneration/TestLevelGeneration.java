@@ -23,7 +23,7 @@ public class TestLevelGeneration {
 		String nrpaLevelGenerator = "dallidalli.nrpaLevelGenerator.LevelGenerator";
 		String nrpa2LevelGenerator = "dallidalli.nrpaLevelGenerator.LevelGenerator2";
 
-		String generator = nrpa2LevelGenerator;
+		String generator = nmcsLevelGenerator;
 
 		String gamesPath = "examples/gridphysics/";
 		String physicsGamesPath = "examples/contphysics/";

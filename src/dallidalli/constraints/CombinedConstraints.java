@@ -61,6 +61,8 @@ public class CombinedConstraints extends AbstractConstraint{
 		double score = 0;
 		double weightsSum = 0;
 
+
+
 		for(int i = 0; i < constraints.size(); i++){
 			if(weights.get(i) > 0){
 				double tmpScore = (weights.get(i) * constraints.get(i).checkConstraint());

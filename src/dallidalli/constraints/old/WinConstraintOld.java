@@ -1,7 +1,7 @@
 package dallidalli.constraints.old;
 
 import ontology.Types.WINNER;
-import tracks.levelGeneration.geneticLevelGenerator.SharedData;
+import dallidalli.commonClasses.SharedData;
 
 public class WinConstraintOld extends OldAbstractConstraint {
 
