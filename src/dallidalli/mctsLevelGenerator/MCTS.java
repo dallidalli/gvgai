@@ -21,7 +21,7 @@ public class MCTS{
     public double bestValue = Double.MIN_VALUE;
     public ArrayList<SpritePointData> currentSequence = new ArrayList<SpritePointData>();
     public double currentValue = Double.MIN_VALUE;
-    public int numberOfNodes = 0;
+    public int numberOfNodes = 1;
 
     public ArrayList<SpritePointData> actions = new ArrayList<SpritePointData>();
     public ArrayList<SpritePointData> workedActions = new ArrayList<SpritePointData>();
@@ -143,16 +143,22 @@ public class MCTS{
                 nVisitsChild = current.getChildren()[i].getTotalVisits();
             }
 
-            nVisitsChild++;
 
 
             double uctValue = 0;
 
-            if(nTotalVisitsParent < workedActions.size()*0.2){
+            /*
+            if(nTotalVisitsParent < actions.size()*0.2){
                 uctValue = SharedData.random.nextDouble() * SharedData.EIPSLON;
             } else{
-                uctValue = totValueChild / (nVisitsChild ) + C*Math.sqrt(Math.log(nTotalVisitsParent) / (nVisitsChild )) + useSPMCTS * (Math.sqrt((Math.pow(totValueChild, 2) - (nVisitsChild ) * Math.pow(totValueChild / (nVisitsChild ),2) + D) / (nVisitsChild ))) + SharedData.random.nextDouble() * SharedData.EIPSLON;
+                uctValue = totValueChild / (nVisitsChild ) + C*Math.sqrt(Math.log(nTotalVisitsParent) / (nVisitsChild )) + SharedData.random.nextDouble() * SharedData.EIPSLON;
             }
+            */
+
+
+            uctValue = totValueChild / (nVisitsChild + SharedData.EIPSLON)
+                    + C*Math.sqrt(Math.log(nTotalVisitsParent) / (nVisitsChild + SharedData.EIPSLON))
+                    + SharedData.random.nextDouble() * SharedData.EIPSLON;
 
             if (uctValue > bestValue) {
                 selectedIndex = i;
@@ -174,19 +180,20 @@ public class MCTS{
             return rollOut(selectedChild);
         } else {
             getLevel(visitedAction, false);
-            currentLevel.calculateSoftConstraints(false, useNewConstraint);
-            double softConstraint = currentLevel.getConstrainFitness();
+            //currentLevel.calculateSoftConstraints(false, useNewConstraint);
+            //double softConstraint = currentLevel.getConstrainFitness();
+            double softConstraint = currentLevel.calculateFitness(SharedData.EVALUATION_TIME);
             resetLevel(visitedAction);
             return softConstraint;
         }
     }
 
     public void selectAction() {
-        workedActions = actions;
-        visitedAction.clear();
-        visitedIndex.clear();
+        workedActions = new ArrayList<>(actions);
+        visitedAction = new ArrayList<>();
+        visitedIndex = new ArrayList<>();
 
-        int curIndex;
+        int curIndex = Integer.MAX_VALUE;
         Node currentNode = root;
 
 
@@ -205,17 +212,24 @@ public class MCTS{
             workedActions = customActionsSingleCalc(workedActions, curIndex);
         }
 
-        currentNode.expand(workedActions.size());
-        curIndex = select(currentNode);
-        visitedIndex.add(curIndex);
 
-        if(currentNode.getChildren()[curIndex] == null){
-            currentNode.setChild(curIndex, new Node());
-            numberOfNodes++;
+        if(isLeaf(currentNode)){
+            currentNode.expand(workedActions.size());
         }
 
-        visitedAction.add(workedActions.get(curIndex));
-        workedActions = customActionsSingleCalc(workedActions, curIndex);
+        if(curIndex == Integer.MAX_VALUE){
+            curIndex = select(currentNode);
+            visitedIndex.add(curIndex);
+
+            if(currentNode.getChildren()[curIndex] == null){
+                currentNode.setChild(curIndex, new Node());
+                numberOfNodes++;
+            }
+
+            visitedAction.add(workedActions.get(curIndex));
+            workedActions = customActionsSingleCalc(workedActions, curIndex);
+        }
+
 
         double value = rollOut(curIndex);
         if(value > bestValue){
@@ -234,7 +248,7 @@ public class MCTS{
             currentNode.update(value);
         }
 
-        calcActions();
+        //calcActions();
     }
 
 
@@ -277,8 +291,7 @@ public class MCTS{
 
     private boolean isTerminal(double fitness) {
         double currentCoverage = (possiblePositions - (workedActions.size() / allSprites.size())) / possiblePositions;
-        double desiredCov = SharedData.MIN_COVER_PERCENTAGE + SharedData.random.nextDouble()*(SharedData.MAX_COVER_PERCENTAGE - SharedData.MIN_COVER_PERCENTAGE);
-        return ((currentCoverage >= desiredCov) || (fitness >= 1));
+        return ((currentCoverage >= SharedData.desiredCoverage) || (fitness >= 1));
     }
 
     public GeneratedLevel getLevel(ArrayList<SpritePointData> prev, boolean verbose) {
@@ -310,6 +323,41 @@ public class MCTS{
 
     public void restart() {
         root = new Node();
-        numberOfNodes = 0;
+        numberOfNodes = 1;
     }
+
+    public void restart2(){
+        int deleted = 0;
+
+        for (int i = 0; i < root.getChildren().length; i++) {
+            if(root.getChildren()[i] != null){
+                if(SharedData.random.nextDouble() < (0.5) && root.getChildren()[i].getBestValue() < bestValue){
+                    deleted += amountNodes(root.getChildren()[i]);
+                    root.getChildren()[i].reset();
+                }
+            }
+        }
+
+        if(deleted > 0){
+            System.gc();
+            numberOfNodes -= deleted;
+        }
+
+    }
+
+    public int amountNodes(Node current){
+        int counter = 1;
+
+        if(current.getChildren() != null){
+            for (int i = 0; i < current.getChildren().length; i++) {
+
+                if(current.getChildren()[i] != null){
+                    counter = counter + amountNodes(current.getChildren()[i]);
+                }
+            }
+        }
+
+        return counter;
+    }
+
 }

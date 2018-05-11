@@ -205,10 +205,10 @@ public class LevelGenerator2 extends AbstractLevelGenerator{
         search.resetLevel(search.translate(result.first.second));
         //System.out.println("Done");
 
-        String name = "NRPA2";
+        String name = "NRPA";
         String setting = SharedData.MIN_SIZE + "x" + SharedData.MAX_SIZE + "_level"+ level + "_cutoff"+ search.cutoff+ "_alpha" + String.valueOf(search.alpha) + "_iterations" + search.numberOfIterations;
 
-//        CSV.writeCSV(name, setting, time,evaluated,value,avgValue);
+        CSV.writeCSV(name, setting, time,evaluated,value,avgValue);
 
         return search.getLevel(search.translate(result.first.second), false).getLevelString(root);
     }

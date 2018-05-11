@@ -92,7 +92,9 @@ public class SharedData {
 
     public static double DRAW_FITNESS = 0.5;
 
-    public static double MCTS_Cvalue = 0.05;
+    public static double scoreThreshold = 2;//0.93;
+
+    public static double MCTS_Cvalue = 1.4; // 0.05
     public static double MCTS_restart = 150000;
     public static int NMCS_level = 1;
     public static boolean NMCS_injected = true;
@@ -105,6 +107,8 @@ public class SharedData {
 
     public static ArrayList<Double> eval_weights = new ArrayList<Double>();
 
+    public static double desiredCoverage = 0;
+    public static String gameName = "";
 
 }
 

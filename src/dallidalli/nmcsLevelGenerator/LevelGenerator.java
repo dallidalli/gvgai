@@ -81,11 +81,11 @@ public class LevelGenerator extends AbstractLevelGenerator{
 
         System.out.println(numberOfIterations + " " + elapsedTimer.remainingTimeMillis() + " " + avgTime + " " + worstTime);
         while(elapsedTimer.remainingTimeMillis() > 2 * avgTime &&
-                elapsedTimer.remainingTimeMillis() > worstTime){
+                elapsedTimer.remainingTimeMillis() > 2* worstTime){
 
 
             if(injected){
-                tmp = search.selectAction2(level, new ArrayList<>(search.allPossibleActions), new Pair<Double, ArrayList<Integer>>(result.first, new ArrayList<Integer>(result.second)));
+                tmp = search.selectAction(level, new ArrayList<>(search.allPossibleActions), new Pair<Double, ArrayList<Integer>>(result.first, new ArrayList<Integer>(result.second)));
             }else{
                 tmp = search.selectAction2(level, new ArrayList<>(search.allPossibleActions), new Pair<Double, ArrayList<Integer>>(Double.MIN_VALUE, new ArrayList<Integer>()));
             }
@@ -113,7 +113,7 @@ public class LevelGenerator extends AbstractLevelGenerator{
             avgTime = totalTime / numberOfIterations;
 
 
-            if(numberOfIterations % 10 == 0){
+            if(numberOfIterations % 1 == 0){
                 time.add(String.valueOf(totalTime));
                 evaluated.add(String.valueOf(search.evaluated));
                 value.add(String.valueOf(tmp.first));

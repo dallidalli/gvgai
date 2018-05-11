@@ -466,9 +466,8 @@ public class NRPA2 {
 
     private boolean isTerminal(ArrayList<Integer> actions, double fitness) {
         double currentCoverage = (possiblePositions - (actions.size() / allSprites.size())) / possiblePositions;
-        double desiredCov = SharedData.MIN_COVER_PERCENTAGE + SharedData.random.nextDouble()*(SharedData.MAX_COVER_PERCENTAGE - SharedData.MIN_COVER_PERCENTAGE);
         //System.out.println((currentCoverage > SharedData.MAX_COVER_PERCENTAGE) + " " +  (getSoftValue(seq) >= 1) + " "+ seq.size());
-        return ((currentCoverage >= desiredCov) || fitness >= 1);
+        return ((currentCoverage >= SharedData.desiredCoverage) || fitness >= 1);
     }
 
 }

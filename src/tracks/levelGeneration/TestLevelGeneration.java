@@ -1,5 +1,6 @@
 package tracks.levelGeneration;
 
+import core.competition.CompetitionParameters;
 import dallidalli.commonClasses.SharedData;
 
 import java.util.Map;
@@ -23,11 +24,11 @@ public class TestLevelGeneration {
 		String nrpaLevelGenerator = "dallidalli.nrpaLevelGenerator.LevelGenerator";
 		String nrpa2LevelGenerator = "dallidalli.nrpaLevelGenerator.LevelGenerator2";
 
-		String generator = nmcsLevelGenerator;
+		String generator = nrpa2LevelGenerator;
 
 		String gamesPath = "examples/gridphysics/";
 		String physicsGamesPath = "examples/contphysics/";
-		String generateLevelPath = gamesPath;
+		String generateLevelPath = "experiments/generatedLevels/";
 
 
 		String games[] = new String[] { "aliens", "angelsdemons", "assemblyline", "avoidgeorge", "bait", // 0-4
@@ -62,15 +63,15 @@ public class TestLevelGeneration {
 
 
 		SharedData.eval_weights.add(3.0); //AccessibilityConstraint
-		SharedData.eval_weights.add(3.0); //AvatarNumberConstraint
+		SharedData.eval_weights.add(4.0); //AvatarNumberConstraint
 		SharedData.eval_weights.add(1.0); //ConnectedWallsConstraint
 		SharedData.eval_weights.add(2.0); //CoverPercentageConstraint
-		SharedData.eval_weights.add(3.0); //EndsInitiallyConstraint
+		SharedData.eval_weights.add(4.0); //EndsInitiallyConstraint
 		SharedData.eval_weights.add(1.0); //GoalDistanceConstraint
 		SharedData.eval_weights.add(1.0); //NeutralHarmfulRatioConstraint
-		SharedData.eval_weights.add(3.0); //SimplestAvatarConstraint
+		SharedData.eval_weights.add(4.0); //SimplestAvatarConstraint
 		SharedData.eval_weights.add(2.0); //SpriteNumberConstraint
-		SharedData.eval_weights.add(2.0); //SpaceAroundAvatarConstraint
+		SharedData.eval_weights.add(3.0); //SpaceAroundAvatarConstraint
 		SharedData.eval_weights.add(1.0); //SymmetryConstraint
 
 
@@ -106,7 +107,7 @@ public class TestLevelGeneration {
 					break;
 				case "nrpa":
 					core.competition.CompetitionParameters.LEVEL_ACTION_TIME = 60000 * Integer.parseInt(args[0]);
-					generator = nrpaLevelGenerator;
+					generator = nrpa2LevelGenerator;
 					gameIdx = Integer.parseInt(args[2]);
 					n = Integer.parseInt(args[3]);
 					SharedData.MAX_SIZE = Double.parseDouble(args[4]);
@@ -122,11 +123,19 @@ public class TestLevelGeneration {
 
 		}
 
-		String recordLevelFile = generateLevelPath + games[gameIdx] + "_glvl.txt";
-		String game = generateLevelPath + games[gameIdx] + ".txt";
+		int duration = (int)(CompetitionParameters.LEVEL_ACTION_TIME/60000);
+
+
+		String recordLevelFile = generateLevelPath +games[gameIdx] + "_"+ generator+"_"+duration+"min"+System.currentTimeMillis()+"_glvl.txt";
+		String game = gamesPath + games[gameIdx] + ".txt";
+
+		SharedData.gameName = games[gameIdx];
 
 
 		for (int i = 0; i < n; i++) {
+            recordLevelFile = generateLevelPath +games[gameIdx] + "_"+ generator+"_"+duration+"min"+System.currentTimeMillis()+"_glvl.txt";
+            SharedData.desiredCoverage = SharedData.MIN_COVER_PERCENTAGE + Math.random()*(SharedData.MAX_COVER_PERCENTAGE - SharedData.MIN_COVER_PERCENTAGE);
+			System.out.println(SharedData.desiredCoverage);
 			LevelGenMachine.generateOneLevel(game, generator, recordLevelFile);
 		}
 

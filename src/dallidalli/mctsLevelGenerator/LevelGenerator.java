@@ -54,19 +54,20 @@ public class LevelGenerator extends AbstractLevelGenerator{
         int numberOfIterations = 0;
         double avgScore = 0.0;
         double curScore = 0.0;
-
+        double restart = SharedData.MCTS_restart;
+        boolean added = false;
+        double bestScore = 0.0;
 
         ArrayList<String> time = new ArrayList<>();
         ArrayList<String> evaluated = new ArrayList<>();
         ArrayList<String> value = new ArrayList<>();
         ArrayList<String> avgValue = new ArrayList<>();
         //SharedData.random.setSeed(42);
-        double restart = SharedData.MCTS_restart;
 
 
         // System.out.println(numberOfIterations + " " + elapsedTimer.remainingTimeMillis() + " " + avgTime + " " + worstTime);
         while(elapsedTimer.remainingTimeMillis() > 2 * avgTime &&
-                elapsedTimer.remainingTimeMillis() > worstTime){
+                elapsedTimer.remainingTimeMillis() > 2*worstTime){
 
             search.selectAction();
             curScore = search.currentValue;
@@ -83,22 +84,72 @@ public class LevelGenerator extends AbstractLevelGenerator{
             avgTime = totalTime / numberOfIterations;
 
 
-
-
-
-            if(numberOfIterations % 500 == 1){
-
+            if(curScore > bestScore){
                 time.add(String.valueOf(totalTime));
                 evaluated.add(String.valueOf(numberOfIterations));
                 value.add(String.valueOf(curScore));
                 avgValue.add(String.valueOf((avgScore / numberOfIterations)));
 
-
-
-                if(numberOfIterations % restart == 1 && restart != 0){
-                    search.restart();
-                }
+                bestScore = curScore;
+                added = true;
             }
+
+
+
+
+
+            if(numberOfIterations % 5000 == 0){
+
+                if(!added){
+                    time.add(String.valueOf(totalTime));
+                    evaluated.add(String.valueOf(numberOfIterations));
+                    value.add(String.valueOf(curScore));
+                    avgValue.add(String.valueOf((avgScore / numberOfIterations)));
+                }
+
+
+
+
+                System.out.println(search.bestValue);
+                System.out.println(avgScore / numberOfIterations);
+                System.out.println(curScore);
+                System.out.println(search.numberOfNodes);
+                System.out.println(search.numberOfNodes * ((8 + 8 + 24*700) / 1000000.0) + " MB");
+                System.out.println(numberOfIterations);
+
+
+                if(search.numberOfNodes >= restart){
+                    search.restart2();
+
+
+                    //amountNodes = search.numberOfNodes;
+                    //System.out.println(amountNodes);
+                    //if(search.numberOfNodes >= restart*2){
+                        //search.restart();
+                    //}
+                }
+                /*
+                if(numberOfIterations % restart == 0 && restart != 0 && numberOfIterations != 0){
+                    double amountNodes = search.numberOfNodes;
+                    //System.out.println(amountNodes);
+
+                    if(amountNodes >= restart){
+                         search.restart2();
+
+
+                        //amountNodes = search.numberOfNodes;
+                        //System.out.println(amountNodes);
+                        if(amountNodes >= restart*2){
+                            //search.restart();
+                        }
+                    }
+
+
+
+                }*/
+            }
+
+            added = false;
         }
 
 

@@ -130,6 +130,72 @@ public class NMCS {
         calcActions();
     }
 
+    public Pair<Double, ArrayList<Integer>> selectAction(int level, ArrayList<SpritePointData> currentState, Pair<Double, ArrayList<Integer>> oldResult) {
+
+
+        if(level == 0){
+            return rollout2(currentState);
+        }
+
+        Pair<Double, ArrayList<Integer>> globalBest = oldResult;
+        ArrayList<Integer> visitedActions = new ArrayList<Integer>();
+
+        while (!isTerminal(currentState.size(), 0)) {
+
+
+
+            Pair<Double, ArrayList<Integer>> currentBest = new Pair<>(Double.MIN_VALUE, new ArrayList<Integer>());
+            int currentBestAction = -1;
+
+            for(int i = 0; i < currentState.size(); i++){
+                ArrayList<SpritePointData> copy = new ArrayList<>(currentState);
+
+                Pair<Double, ArrayList<Integer>> move = selectAction(level-1, customActionsSingleCalc(copy, i), new Pair<Double, ArrayList<Integer>>(Double.MIN_VALUE, new ArrayList<Integer>()));
+
+                if(move.first > currentBest.first){
+                    currentBestAction = i;
+                    currentBest = move;
+                }
+
+            }
+
+
+            if(currentBest.first >= globalBest.first){
+                visitedActions.add(currentBestAction);
+                globalBest = currentBest;
+                globalBest.second.addAll(0, visitedActions);
+            } else {
+                if(visitedActions.size() > 0 && visitedActions.size() >= globalBest.second.size()){
+                    //break;
+                }
+
+                currentBestAction = globalBest.second.get(visitedActions.size());
+                visitedActions.add(currentBestAction);
+            }
+
+            currentState = customActionsSingleCalc(currentState, currentBestAction);
+        }
+
+        double fitness = getEvalValue(new ArrayList<>(allPossibleActions),globalBest.second);
+
+        if(fitness >= globalBest.first){
+            countBetter++;
+        }else{
+            countWorse++;
+        }
+
+        globalBest.first = fitness;
+        //System.out.println(level);
+        //System.out.println(globalBest.second.size());
+        //System.out.println(evaluated);
+
+        if(globalBest.first > oldResult.first)
+            return globalBest;
+        else
+            return oldResult;
+
+    }
+
     public Pair<Double, ArrayList<Integer>> selectAction2(int level, ArrayList<SpritePointData> currentState, Pair<Double, ArrayList<Integer>> oldResult){
         int ply = 0;
         double fitness = 0;
@@ -150,6 +216,8 @@ public class NMCS {
             if(level == 1){
 
                 for(int i = 0; i < currentState.size(); i++){
+                    ArrayList<SpritePointData> copy = new ArrayList<>(currentState);
+
                     Pair<Double, ArrayList<Integer>> move = rollout(new ArrayList<>(currentState), i);
 
                     if(move.first > tmpBest){
@@ -224,10 +292,34 @@ public class NMCS {
 
     }
 
+    private Pair<Double,ArrayList<Integer>> rollout2(ArrayList<SpritePointData> currentState) {
+        ArrayList<Integer> seqIndex = new ArrayList<>();
+        ArrayList<SpritePointData> seq = new ArrayList<>();
+
+        double fitness = 0;
+
+
+
+        while(!isTerminal(currentState.size(), fitness)){
+            int selectedChild = SharedData.random.nextInt(currentState.size());
+            seqIndex.add(selectedChild);
+            seq.add(currentState.get(selectedChild));
+            currentState = customActionsSingleCalc(currentState, selectedChild);
+        }
+
+
+        fitness = getEvalValueRollout(seq);
+
+
+
+        evaluated++;
+        return new Pair<Double, ArrayList<Integer>>(fitness, seqIndex);
+    }
 
     private Pair<Double,ArrayList<Integer>> rollout(ArrayList<SpritePointData> currentState, int lastMove) {
         ArrayList<Integer> seqIndex = new ArrayList<>();
         ArrayList<SpritePointData> seq = new ArrayList<>();
+
 
         seqIndex.add(lastMove);
         seq.add(currentState.get(lastMove));
@@ -294,8 +386,9 @@ public class NMCS {
 
         getLevel(seq, false);
         double value = 0;
-        level.calculateSoftConstraints(false, useNewConstraint);
-        value = level.getConstrainFitness();
+        //level.calculateSoftConstraints(false, useNewConstraint);
+        //value = level.getConstrainFitness();
+        value = level.calculateFitness(SharedData.EVALUATION_TIME);
         resetLevel(seq);
         return value;
     }
@@ -313,9 +406,8 @@ public class NMCS {
 
     private boolean isTerminal(double size, double fitness) {
         double currentCoverage = (possiblePositions - (size / allSprites.size())) / possiblePositions;
-        double desiredCov = SharedData.MIN_COVER_PERCENTAGE + SharedData.random.nextDouble()*(SharedData.MAX_COVER_PERCENTAGE - SharedData.MIN_COVER_PERCENTAGE);
         //System.out.println((currentCoverage > SharedData.MAX_COVER_PERCENTAGE) + " " +  (getSoftValue(seq) >= 1) + " "+ seq.size());
-        return ((currentCoverage >= desiredCov) || fitness >= 1);
+        return ((currentCoverage >= SharedData.desiredCoverage) || fitness >= 1);
     }
 
     public ArrayList<SpritePointData> customActionsSingleCalc(ArrayList<SpritePointData> allActions, int indexKnown) {

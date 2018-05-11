@@ -59,6 +59,8 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
     private StateObservation stateObs;
 
     private String randomSolid = "non-existent";
+    private StepController stepAgent;
+    private ElapsedCpuTimer elapsedTimer;
 
     /**
      * initialize the level with a certain length and width
@@ -122,7 +124,6 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
         constraintSimulation.addConstraints(new String[]{"SolutionLengthConstraintOld", "DeathConstraintOld", "WinConstraintOld"});
 
 
-
         //initialize the hashmap with all the sprite names
         for(GameDescription.SpriteData sprite:allSprites){
             this.objects.put(sprite.name, 0);
@@ -168,11 +169,11 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
      * initialize the agents used during evaluating the level
      */
     @SuppressWarnings("unchecked")
-    private void constructAgent(){
+    private void constructAgent(StateObservation obs){
         try{
             Class agentClass = Class.forName(SharedData.AGENT_NAME);
             Constructor agentConst = agentClass.getConstructor(new Class[]{StateObservation.class, ElapsedCpuTimer.class});
-            automatedAgent = (AbstractPlayer)agentConst.newInstance(getStateObservation().copy(), null);
+            automatedAgent = (AbstractPlayer)agentConst.newInstance(obs.copy(), null);
         }
         catch(Exception e){
             e.printStackTrace();
@@ -181,7 +182,7 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
         try{
             Class agentClass = Class.forName(SharedData.NAIVE_AGENT_NAME);
             Constructor agentConst = agentClass.getConstructor(new Class[]{StateObservation.class, ElapsedCpuTimer.class});
-            naiveAgent = (AbstractPlayer)agentConst.newInstance(getStateObservation().copy(), null);
+            naiveAgent = (AbstractPlayer)agentConst.newInstance(obs.copy(), null);
         }
         catch(Exception e){
             e.printStackTrace();
@@ -190,7 +191,7 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
         try{
             Class agentClass = Class.forName(SharedData.NAIVE_AGENT_NAME);
             Constructor agentConst = agentClass.getConstructor(new Class[]{StateObservation.class, ElapsedCpuTimer.class});
-            doNothingAgent = (AbstractPlayer)agentConst.newInstance(getStateObservation().copy(), null);
+            doNothingAgent = (AbstractPlayer)agentConst.newInstance(obs.copy(), null);
         }
         catch(Exception e){
             e.printStackTrace();
@@ -621,14 +622,18 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
     public double calculateFitness(long time){
         calculateSoftConstraints(false, true);
 
-        if(this.constrainFitness >= 0.91){
-            constructAgent();
+        if(SharedData.scoreThreshold > 1){
+            return this.constrainFitness;
+        }
 
-            StateObservation stateObs = getStateObservation();
+        if(this.constrainFitness >= SharedData.scoreThreshold){
+            getStateObservation();
+            constructAgent(stateObs);
 
             //Play the game using the best agent
-            StepController stepAgent = new StepController(automatedAgent, SharedData.EVALUATION_STEP_TIME);
-            ElapsedCpuTimer elapsedTimer = new ElapsedCpuTimer();
+            stepAgent = new StepController(automatedAgent, SharedData.EVALUATION_STEP_TIME);
+
+            elapsedTimer = new ElapsedCpuTimer();
             elapsedTimer.setMaxTimeMillis(time);
             stepAgent.playGame(stateObs.copy(), elapsedTimer);
 
@@ -665,15 +670,14 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
 
 
             constraintSimulation.setParameters(parameters);
-            double oldFitness = constrainFitness;
-            constrainFitness += constraintSimulation.checkConstraint();
-            constrainFitness /= 2;
+
+            double constrainFitness2 = constraintSimulation.checkConstraint();
 
             System.out.println("SolutionLength:" + bestSol.size() + " doNothingSteps:" + doNothingLength +" bestPlayer:" + bestState.getGameWinner());
 
 
             //calculate the fitness if it satisfied all the constraints
-            if(constrainFitness >= oldFitness){
+            if(constrainFitness2 >= 1){
                 StateObservation naiveState = null;
                 for(int i = 0; i< SharedData.REPETITION_AMOUNT; i++){
                     StateObservation tempState = stateObs.copy();
@@ -695,18 +699,18 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
                 //this.naiveAgent = null;
                 //this.stateObs = null;
 
-                return (((fitness.get(0)+fitness.get(1))/2) + constrainFitness)/2;
+                return (((fitness.get(0)+fitness.get(1))/2)*0.25 + constrainFitness * 0.5 + constrainFitness2 * 0.25);
             }else{
                 //this.automatedAgent = null;
                 //this.naiveAgent = null;
                 //this.stateObs = null;
 
-                return constrainFitness/2;
+                return constrainFitness*0.5 + constrainFitness2*0.25;
             }
 
 
         }else{
-            return constrainFitness/4;
+            return constrainFitness*0.5;
         }
 
     }
