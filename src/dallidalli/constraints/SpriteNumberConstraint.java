@@ -1,9 +1,9 @@
 package dallidalli.constraints;
 
+import tools.GameAnalyzer;
+
 import java.util.HashMap;
 import java.util.Map.Entry;
-
-import tools.GameAnalyzer;
 
 public class SpriteNumberConstraint extends AbstractConstraint{
 	

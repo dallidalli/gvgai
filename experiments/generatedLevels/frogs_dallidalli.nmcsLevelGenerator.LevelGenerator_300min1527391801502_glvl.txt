@@ -1,0 +1,19 @@
+LevelMapping
+    a > wall 
+    b > avatar 
+    c > slowLtruck 
+    d > goal 
+
+LevelDescription
+aaaaaaaaaaaa
+a     a  a a
+a          a
+a  b       a
+a       c  a
+a          a
+a          a
+a          a
+a          a
+a          a
+a     a d  a
+aaaaaaaaaaaa

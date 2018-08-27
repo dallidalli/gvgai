@@ -1,7 +1,5 @@
 package dallidalli.nrpaLevelGenerator;
 
-import dallidalli.commonClasses.SpritePointData;
-
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;

@@ -3,12 +3,7 @@ package tracks.levelGeneration;
 import core.competition.CompetitionParameters;
 import dallidalli.commonClasses.SharedData;
 
-import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import static java.util.concurrent.Executors.newFixedThreadPool;
 
 public class TestLevelGeneration {
 
@@ -19,12 +14,12 @@ public class TestLevelGeneration {
 		String randomLevelGenerator = "tracks.levelGeneration.randomLevelGenerator.LevelGenerator";
 		String geneticGenerator = "tracks.levelGeneration.geneticLevelGenerator.LevelGenerator";
 		String constructiveLevelGenerator = "tracks.levelGeneration.constructiveLevelGenerator.LevelGenerator";
+		String improvedConstructiveLevelGenerator = "dallidalli.improvedConstructiveLevelGenerator.LevelGenerator";
 		String mctsLevelGenerator = "dallidalli.mctsLevelGenerator.LevelGenerator";
 		String nmcsLevelGenerator = "dallidalli.nmcsLevelGenerator.LevelGenerator";
-		String nrpaLevelGenerator = "dallidalli.nrpaLevelGenerator.LevelGenerator";
-		String nrpa2LevelGenerator = "dallidalli.nrpaLevelGenerator.LevelGenerator2";
+		String nrpaLevelGenerator = "dallidalli.nrpaLevelGenerator.LevelGenerator2";
 
-		String generator = nrpa2LevelGenerator;
+		String generator = improvedConstructiveLevelGenerator;
 
 		String gamesPath = "examples/gridphysics/";
 		String physicsGamesPath = "examples/contphysics/";
@@ -59,7 +54,7 @@ public class TestLevelGeneration {
 
 		// Other settings
 		int seed = new Random().nextInt();
-		int gameIdx = 90;
+		int gameIdx = 0; // 0 39 75 90
 
 
 		SharedData.eval_weights.add(3.0); //AccessibilityConstraint
@@ -107,7 +102,7 @@ public class TestLevelGeneration {
 					break;
 				case "nrpa":
 					core.competition.CompetitionParameters.LEVEL_ACTION_TIME = 60000 * Integer.parseInt(args[0]);
-					generator = nrpa2LevelGenerator;
+					generator = nrpaLevelGenerator;
 					gameIdx = Integer.parseInt(args[2]);
 					n = Integer.parseInt(args[3]);
 					SharedData.MAX_SIZE = Double.parseDouble(args[4]);
@@ -132,12 +127,51 @@ public class TestLevelGeneration {
 		SharedData.gameName = games[gameIdx];
 
 
-		for (int i = 0; i < n; i++) {
-            recordLevelFile = generateLevelPath +games[gameIdx] + "_"+ generator+"_"+duration+"min"+System.currentTimeMillis()+"_glvl.txt";
-            SharedData.desiredCoverage = SharedData.MIN_COVER_PERCENTAGE + Math.random()*(SharedData.MAX_COVER_PERCENTAGE - SharedData.MIN_COVER_PERCENTAGE);
-			System.out.println(SharedData.desiredCoverage);
-			LevelGenMachine.generateOneLevel(game, generator, recordLevelFile);
+		if (generator == improvedConstructiveLevelGenerator){
+			for(int i = 0; i < 30; i++){
+				gameIdx = 0;
+				game = gamesPath + games[gameIdx] + ".txt";
+				recordLevelFile = generateLevelPath +games[gameIdx] + "_"+ generator+"_"+duration+"min"+System.currentTimeMillis()+"_glvl.txt";
+				SharedData.desiredCoverage = SharedData.MIN_COVER_PERCENTAGE + Math.random()*(SharedData.MAX_COVER_PERCENTAGE - SharedData.MIN_COVER_PERCENTAGE);
+				System.out.println(SharedData.desiredCoverage);
+				LevelGenMachine.generateOneLevel(game, generator, recordLevelFile);
+
+
+				gameIdx = 39;
+				game = gamesPath + games[gameIdx] + ".txt";
+				recordLevelFile = generateLevelPath +games[gameIdx] + "_"+ generator+"_"+duration+"min"+System.currentTimeMillis()+"_glvl.txt";
+				SharedData.desiredCoverage = SharedData.MIN_COVER_PERCENTAGE + Math.random()*(SharedData.MAX_COVER_PERCENTAGE - SharedData.MIN_COVER_PERCENTAGE);
+				System.out.println(SharedData.desiredCoverage);
+				LevelGenMachine.generateOneLevel(game, generator, recordLevelFile);
+
+
+				gameIdx = 75;
+				game = gamesPath + games[gameIdx] + ".txt";
+				recordLevelFile = generateLevelPath +games[gameIdx] + "_"+ generator+"_"+duration+"min"+System.currentTimeMillis()+"_glvl.txt";
+				SharedData.desiredCoverage = SharedData.MIN_COVER_PERCENTAGE + Math.random()*(SharedData.MAX_COVER_PERCENTAGE - SharedData.MIN_COVER_PERCENTAGE);
+				System.out.println(SharedData.desiredCoverage);
+				LevelGenMachine.generateOneLevel(game, generator, recordLevelFile);
+
+
+				gameIdx = 90;
+				game = gamesPath + games[gameIdx] + ".txt";
+				recordLevelFile = generateLevelPath +games[gameIdx] + "_"+ generator+"_"+duration+"min"+System.currentTimeMillis()+"_glvl.txt";
+				SharedData.desiredCoverage = SharedData.MIN_COVER_PERCENTAGE + Math.random()*(SharedData.MAX_COVER_PERCENTAGE - SharedData.MIN_COVER_PERCENTAGE);
+				System.out.println(SharedData.desiredCoverage);
+				LevelGenMachine.generateOneLevel(game, generator, recordLevelFile);
+			}
+		}else{
+			for (int i = 0; i < n; i++) {
+				recordLevelFile = generateLevelPath +games[gameIdx] + "_"+ generator+"_"+duration+"min"+System.currentTimeMillis()+"_glvl.txt";
+				SharedData.desiredCoverage = SharedData.MIN_COVER_PERCENTAGE + Math.random()*(SharedData.MAX_COVER_PERCENTAGE - SharedData.MIN_COVER_PERCENTAGE);
+				System.out.println(SharedData.desiredCoverage);
+				LevelGenMachine.generateOneLevel(game, generator, recordLevelFile);
+				if(n == 1){
+					//LevelGenMachine.playOneGeneratedLevel(game, recordActionsFile, recordLevelFile, seed);
+				}
+			}
 		}
+
 
 
 		// 2. This generates numberOfLevels levels.

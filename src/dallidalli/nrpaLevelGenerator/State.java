@@ -1,10 +1,5 @@
 package dallidalli.nrpaLevelGenerator;
 
-import dallidalli.commonClasses.SpritePointData;
-
-import java.awt.*;
-import java.util.ArrayList;
-
 public class State {
 
     int[] sequence;

@@ -3,14 +3,16 @@ package dallidalli.nmcsLevelGenerator;
 import core.game.GameDescription;
 import core.generator.AbstractLevelGenerator;
 import dallidalli.commonClasses.CSV;
+import dallidalli.commonClasses.SharedData;
+import dallidalli.commonClasses.SpritePointData;
 import tools.ElapsedCpuTimer;
 import tools.GameAnalyzer;
 import tools.LevelMapping;
 import tools.Pair;
-import dallidalli.commonClasses.SharedData;
-import dallidalli.commonClasses.SpritePointData;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Random;
 
 public class LevelGenerator extends AbstractLevelGenerator{
 

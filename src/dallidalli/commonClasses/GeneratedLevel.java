@@ -4,12 +4,12 @@ import core.game.Event;
 import core.game.GameDescription;
 import core.game.StateObservation;
 import core.player.AbstractPlayer;
+import dallidalli.constraints.CombinedConstraints;
 import ontology.Types;
 import tools.ElapsedCpuTimer;
 import tools.LevelMapping;
 import tools.Pair;
 import tools.StepController;
-import dallidalli.constraints.CombinedConstraints;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;

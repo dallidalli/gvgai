@@ -1,9 +1,9 @@
 package dallidalli.constraints;
 
-import java.util.HashMap;
-
 import core.game.GameDescription;
 import core.game.GameDescription.TerminationData;
+
+import java.util.HashMap;
 
 public class GoalConstraint extends AbstractConstraint{
 

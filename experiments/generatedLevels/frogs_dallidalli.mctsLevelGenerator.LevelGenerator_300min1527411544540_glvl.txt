@@ -1,0 +1,18 @@
+LevelMapping
+    a > wall 
+    b > goal 
+    c > avatar 
+
+LevelDescription
+aaaaaaaaaaaa
+ab a       a
+a  a       a
+a          a
+a          a
+a          a
+a          a
+a          a
+aa   c     a
+a          a
+a a        a
+aaaaaaaaaaaa

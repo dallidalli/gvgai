@@ -3,12 +3,14 @@ package dallidalli.mctsLevelGenerator;
 import core.game.GameDescription;
 import core.generator.AbstractLevelGenerator;
 import dallidalli.commonClasses.CSV;
-import tools.ElapsedCpuTimer;
-import tools.GameAnalyzer;
 import dallidalli.commonClasses.SharedData;
 import dallidalli.commonClasses.SpritePointData;
+import tools.ElapsedCpuTimer;
+import tools.GameAnalyzer;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Random;
 
 public class LevelGenerator extends AbstractLevelGenerator{
 

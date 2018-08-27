@@ -1,0 +1,20 @@
+LevelMapping
+    a > wall 
+    b > avatar 
+    c > forestDense 
+    d > fastLtruck 
+    e > goal 
+
+LevelDescription
+aaaaaaaaaaaa
+a          a
+a         aa
+a          a
+a       b  a
+aa         a
+a          a
+a     c d  a
+ae         a
+ae         a
+a    c     a
+aaaaaaaaaaaa

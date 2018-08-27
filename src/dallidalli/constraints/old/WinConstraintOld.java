@@ -1,7 +1,7 @@
 package dallidalli.constraints.old;
 
-import ontology.Types.WINNER;
 import dallidalli.commonClasses.SharedData;
+import ontology.Types.WINNER;
 
 public class WinConstraintOld extends OldAbstractConstraint {
 

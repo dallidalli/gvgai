@@ -8,7 +8,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 source("functions.R")
-setwd("C:/Users/dalli/IdeaProjects/gvgai/experiments")
+# setwd("C:/Users/dalli/IdeaProjects/gvgai/experiments")
 ```
 
 ```{r}

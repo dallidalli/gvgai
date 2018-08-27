@@ -1,23 +1,23 @@
 loadJavaCSV <- function(folder, input){
   size <- length(input)
   result <- c()
-  
+
   for (i in 1:size) {
     cur <- paste0(folder,dir(path = folder, pattern = paste0(input[i], "")))
     result[[i]] <- lapply(seq_along(cur),function(x){
       assign(paste0(input[i], x), read.table(cur[x], header = TRUE, sep = ","))
     })
     
-    minNumRows <- min(sapply(result[[i]], nrow))
-    numObs <- length(result[[i]])
-    tmp <- lapply(result[[i]], function(x){
-      x <- x[1:minNumRows,]
-    })
-    tmp <- Reduce('+', tmp)
-    tmp <- sapply(tmp, function(x){
-      x <- x / numObs
-    })
-    result[[i]] <- data.frame(tmp)
+    #minNumRows <- min(sapply(result[[i]], nrow))
+    #numObs <- length(result[[i]])
+    #tmp <- lapply(result[[i]], function(x){
+    #  x <- x[1:minNumRows,]
+    #})
+    #tmp <- Reduce('+', tmp)
+    #tmp <- sapply(tmp, function(x){
+    #  x <- x / numObs
+    #})
+    #result[[i]] <- data.frame(tmp)
   }
   
   names(result) <- input
@@ -45,4 +45,44 @@ plotResults <- function(x){
   }
   
   legend("bottomright", legend=names(x),fill = colours)
+}
+
+getMaxValues <- function(x){
+  
+  result <- c()
+  
+  size <- length(x)
+  
+  for (i in 1:size) {
+    result <- c(result, max(as.data.frame(x[i])$value))
+  }
+  
+  return(result)
+}
+
+getEvalValues <- function(x){
+  
+  result <- c()
+  
+  size <- length(x)
+  
+  for (i in 1:size) {
+    result <- c(result, max(as.data.frame(x[i])$evaluated))
+  }
+  
+  return(result)
+}
+
+getDurValues <- function(x){
+  
+  result <- c()
+  
+  size <- length(x)
+  
+  for (i in 1:size) {
+    index <- which.max(as.data.frame(x[i])$value)
+    result <- c(result, as.data.frame(x[i])$time[index] / 60000 )
+  }
+  
+  return(result)
 }

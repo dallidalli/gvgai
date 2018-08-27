@@ -1,0 +1,17 @@
+LevelMapping
+    a > avatar 
+    b > base 
+    c > portalFast 
+    d > portalSlow 
+
+LevelDescription
+a  bc    c
+          
+       d  
+   d      
+   b      
+          
+          
+          
+          
+          

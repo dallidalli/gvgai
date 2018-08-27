@@ -1,13 +1,12 @@
 package dallidalli.nmcsLevelGenerator;
 
 import core.game.GameDescription;
-import tools.Pair;
 import dallidalli.commonClasses.GeneratedLevel;
 import dallidalli.commonClasses.SharedData;
 import dallidalli.commonClasses.SpritePointData;
+import tools.Pair;
 
 import java.util.ArrayList;
-import java.util.function.Supplier;
 
 public class NMCS {
 

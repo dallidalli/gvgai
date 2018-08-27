@@ -1,9 +1,11 @@
 package dallidalli.mctsLevelGenerator;
 
 import core.game.GameDescription;
-import dallidalli.commonClasses.*;
+import dallidalli.commonClasses.GeneratedLevel;
+import dallidalli.commonClasses.SharedData;
+import dallidalli.commonClasses.SpritePointData;
 
-import java.util.*;
+import java.util.ArrayList;
 
 public class MCTS{
 

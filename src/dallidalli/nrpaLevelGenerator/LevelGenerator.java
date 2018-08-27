@@ -3,14 +3,15 @@ package dallidalli.nrpaLevelGenerator;
 import core.game.GameDescription;
 import core.generator.AbstractLevelGenerator;
 import dallidalli.commonClasses.CSV;
+import dallidalli.commonClasses.SharedData;
 import tools.ElapsedCpuTimer;
 import tools.GameAnalyzer;
 import tools.LevelMapping;
 import tools.Pair;
-import dallidalli.commonClasses.SharedData;
-import dallidalli.commonClasses.SpritePointData;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Random;
 
 public class LevelGenerator extends AbstractLevelGenerator{
 
@@ -66,11 +67,17 @@ public class LevelGenerator extends AbstractLevelGenerator{
 
 
         double averageScore = 0;
+        Pair<Pair<Double, ArrayList<Integer>>, Policy> result = new Pair<Pair<Double, ArrayList<Integer>>, Policy>(new Pair(Double.MIN_VALUE, new ArrayList<Integer>()), search.emptyPolicy);
+        //Pair<Double, ArrayList<SpritePointData>> result = null;
+        //Policy test = new Policy(search.emptyPolicy);
+        int stuckCount = 0;
+        double prevResult = 0;
+        boolean foundBetter = false;
 
-        Pair<Pair<Double, ArrayList<Integer>>, ArrayList<SpritePointData>> result = null;
-        //        Pair<Double, ArrayList<SpritePointData>> result = null;
 
         long endTimeMs = System.currentTimeMillis() + elapsedTimer.remainingTimeMillis();
+
+        //ArrayList<Pair<Pair<Double, ArrayList<Integer>>, Policy>> result2 = null;
 
         System.out.println(numberOfIterations + " " + elapsedTimer.remainingTimeMillis() + " " + avgTime + " " + worstTime);
         while(elapsedTimer.remainingTimeMillis() > 2 * avgTime &&
@@ -78,37 +85,83 @@ public class LevelGenerator extends AbstractLevelGenerator{
             ElapsedCpuTimer timer = new ElapsedCpuTimer();
 
 
-            Pair<Pair<Double, ArrayList<Integer>>, ArrayList<SpritePointData>> tmp = search.selectAction2(level,search.keyMap, () -> {return System.currentTimeMillis() > endTimeMs;});
+            Pair<Pair<Double, ArrayList<Integer>>, Policy> tmp = search.recursiveNRPA(SharedData.NRPA_level, search.emptyPolicy, result.first);
+            //ArrayList<Pair<Pair<Double, ArrayList<Integer>>, Policy>> pairs = search.recursiveBeamNRPA(SharedData.NRPA_level, new Policy(search.emptyPolicy), result2);
 
-            averageScore += tmp.first.first;
-
-            if(result == null){
-                result = tmp;
-            }else {
-                if(tmp.first.first >= result.first.first){
-                    result = tmp;
-                }
-            }
-
-
-
-
-
+            /*
+            averageScore += pairs.get(0).first.first;
             numberOfIterations += 1;
             totalTime += timer.elapsedMillis();
             avgTime = totalTime / numberOfIterations;
+            //search.emptyPolicy = result.second;
+
+
+            if(result2 == null || pairs.get(0).first.first > result2.get(0).first.first){
+                result2 = pairs;
+            }
+*/
+
+            search.emptyPolicy = tmp.second;
+            averageScore += tmp.first.first;
+            numberOfIterations += 1;
+            totalTime += timer.elapsedMillis();
+            avgTime = totalTime / numberOfIterations;
+
+            //test = tmp.second;
+
+            if(tmp.first.first >= result.first.first){
+                if(tmp.first.first > result.first.first) {
+                    foundBetter = true;
+                }
+                result = tmp;
+            }
+
+
+            //search.emptyPolicy = result.second;
+
+
+
+
 
             time.add(String.valueOf(totalTime));
             evaluated.add(String.valueOf(search.evaluated));
             value.add(String.valueOf(tmp.first.first));
             avgValue.add(String.valueOf((averageScore / numberOfIterations)));
 
-            if(numberOfIterations % 10 == 0){
-                //System.out.println(averageScore/numberOfIterations);
-                //System.out.println(result.first.first);
+/*
+            if(prevResult == tmp.first.first){
+                stuckCount++;
+                if(stuckCount % (int)(100 / SharedData.NRPA_level )  == 0 && foundBetter){
+                    foundBetter = false;
+                    search.emptyPolicy = new Policy(test);
+                    stuckCount = 0;
+                } else if(stuckCount % (int)(30 / SharedData.NRPA_level )  == 0 && !foundBetter){
+                    foundBetter = false;
+                    search.emptyPolicy = new Policy(test);
+                    stuckCount = 0;
+                }
+            } else {
+                stuckCount = 0;
+            }
+
+            prevResult = tmp.first.first;
+*/
+            if(numberOfIterations % 1 == 0){
+                /*
+                System.out.println(averageScore/numberOfIterations);
+                for(int i = 0; i < pairs.size(); i++){
+                    System.out.print(pairs.get(i).first.first);
+                    System.out.print(" ");
+                }
+                System.out.println();
+                */
+                //System.out.println(pairs.get(0).first.first);
+                System.out.println(tmp.first.first);
+                System.out.println(averageScore / numberOfIterations);
                 //search.getLevel(tmp.second, true).getLevelMapping();
                 //search.resetLevel(tmp.second);
                 //System.out.println(numberOfIterations + " " + search.evaluated + " " + search.keyMap.entrySet().size() + " " + elapsedTimer.remainingTimeMillis() + " " + avgTime + " " + worstTime);
+                System.out.println(numberOfIterations + " " + search.evaluated+ " "+ search.emptyPolicy.size());
             }
 
 
@@ -147,8 +200,8 @@ public class LevelGenerator extends AbstractLevelGenerator{
         //System.out.println(result.first);
         //System.out.println(result.second);
 
-        root = search.getLevel(result.second, true).getLevelMapping();
-        search.resetLevel(result.second);
+        root = search.getLevel(search.translate(result.first.second), true).getLevelMapping();
+        search.resetLevel(search.translate(result.first.second));
         //System.out.println("Done");
 
         String name = "NRPA";
@@ -156,7 +209,7 @@ public class LevelGenerator extends AbstractLevelGenerator{
 
         CSV.writeCSV(name, setting, time,evaluated,value,avgValue);
 
-        return search.getLevel(result.second, false).getLevelString(root);
+        return search.getLevel(search.translate(result.first.second), false).getLevelString(root);
     }
 
     /**

@@ -1,0 +1,14 @@
+LevelMapping
+    a > wall 
+    b > hole 
+    c > avatar 
+    d > box 
+
+LevelDescription
+aaaaaaaaa
+a       a
+a     aaa
+a b  baca
+a   aaa a
+a  b d  a
+aaaaaaaaa

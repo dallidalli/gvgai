@@ -1,18 +1,22 @@
 package dallidalli.nrpaLevelGenerator;
 
 import core.game.GameDescription;
-import tools.Pair;
 import dallidalli.commonClasses.GeneratedLevel;
 import dallidalli.commonClasses.MultiKeyHashMap;
 import dallidalli.commonClasses.SharedData;
 import dallidalli.commonClasses.SpritePointData;
+import tools.Pair;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.function.Supplier;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class NRPA {
+
+    public Policy emptyPolicy;
+    private final List<Integer> actionIndicies;
 
     public ArrayList<SpritePointData> allPossibleActions = new ArrayList<>();
     public GeneratedLevel level;
@@ -21,29 +25,15 @@ public class NRPA {
     public double numberOfSprites;
     public MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Double> policy = new MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Double>();
 
-    public HashMap<ArrayList<SpritePointData>, HashMap<Integer, Double>> keyMap = new HashMap<ArrayList<SpritePointData>, HashMap<Integer, Double>>((int)(10000000 / 0.75) + 1);
-
     public int cutoff = SharedData.NRPA_cutoff;
     public int evaluated = 0;
     public int numberOfIterations = SharedData.NRPA_numIterations;
     public double alpha = SharedData.NRPA_alpha;
-    public double exploration = 0.000; // 0.002
     public boolean useNewConstraint = SharedData.useNewConstraints;
 
-
-    private ArrayList<SpritePointData> tmpSequence = new ArrayList<>();
-    private ArrayList<SpritePointData> seq = new ArrayList<>();
-    private ArrayList<SpritePointData> actions = new ArrayList<>();
-    private ArrayList<SpritePointData> best = new ArrayList<>();
-    private ArrayList<Integer> best2 = new ArrayList<>();
-    private ArrayList<ArrayList<SpritePointData>> sets = new ArrayList<>();
-    private ArrayList<ArrayList<Integer>> sets2 = new ArrayList<>();
-    private ArrayList<Double> sumOfSets = new ArrayList<>();
-    private ArrayList<SpritePointData> candidates = new ArrayList<>();
-    private ArrayList<Integer> candidates2 = new ArrayList<>();
-    private MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Double> tmpPol;
-    private Set<Map.Entry<SpritePointData, Double>> others;
-    private Set<Map.Entry<Integer, Double>> others2;
+    public ArrayList<Policy> policiesL = new ArrayList<>();
+    public ArrayList<Double> scoreL = new ArrayList<>();
+    //public ArrayList<ArrayList<Integer>> sequenceL = new ArrayList<>();
 
     public NRPA(int width, int height, boolean empty) {
 
@@ -116,6 +106,13 @@ public class NRPA {
         calcActions();
         numberOfSprites = allSprites.size();
 
+        emptyPolicy = new Policy(allPossibleActions.size(), (int) numberOfSprites, 0);
+        actionIndicies = IntStream.range(0, allPossibleActions.size()).boxed().collect(Collectors.toList());
+
+        for(int i = 0; i <= SharedData.NRPA_level; i++){
+            scoreL.add(Double.MIN_VALUE);
+            policiesL.add(new Policy(emptyPolicy, true));
+        }
 
         //numberOfIterations = (int) (allPossibleActions.size()*0.3 + cutoff*allPossibleActions.size()*0.003);
         //addSequence(allPossibleActions, new ArrayList<>());
@@ -138,419 +135,302 @@ public class NRPA {
     }
 
 
-    public ArrayList<SpritePointData> getAllPossibleActions() {
-        return allPossibleActions;
+    private ArrayList<Integer> customActionsSingleCalc(ArrayList<Integer> currentActions, int action) {
+        int start = (int) (Math.floor(action / numberOfSprites)*numberOfSprites);
+        int end = (int) (start+numberOfSprites);
+
+        List<Integer> range = IntStream.range(start, end).boxed().collect(Collectors.toList());
+
+        currentActions.removeAll(range);
+        return currentActions;
     }
 
-    private ArrayList<SpritePointData> customActionsSingleCalc(ArrayList<SpritePointData> allActions, SpritePointData prev, int indexKnown) {
-
-        if(indexKnown >= 0){
-
-        } else {
-            indexKnown = allActions.indexOf(prev);
-        }
+    public Pair<Pair<Double, ArrayList<Integer>>, Policy> recursiveNRPA(int level, Policy p, Pair<Double, ArrayList<Integer>> prevBest){
+        //double best = scoreL.get(level);
+        //double best = Double.MIN_VALUE;
 
 
-        int start = (int) (Math.floor(indexKnown / allSprites.size())*allSprites.size());
-        int end = (int) (start+allSprites.size());
+        Pair<Pair<Double, ArrayList<Integer>>, Policy> bestResult, curResult;
 
-
-        for (int i = start; i < end; i++) {
-            allActions.remove(start);
-        }
-
-        return allActions;
-    }
-
-
-    public Pair<Double, ArrayList<SpritePointData>> selectAction(int level, MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Double> currentPolicy, Supplier<Boolean> isCanceled) {
-
-        if (level == 0) {
-            seq.clear();
+        if(level == 0){
+            ArrayList<Integer> seq = new ArrayList<>();
             double fitness = 0;
-            actions = new ArrayList<>(allPossibleActions);
+            ArrayList<Integer> legalActions = new ArrayList<>(actionIndicies);
 
-            while (!isTerminal(actions, fitness)) {
-                candidates.clear();
-                candidates = getSuitableActions(seq, actions, currentPolicy);
-                int selectedChild = SharedData.random.nextInt(candidates.size());
-                seq.add(candidates.get(selectedChild));
+            ArrayList<Integer> tmpState;
 
-                actions = customActionsSingleCalc(actions, candidates.get(selectedChild), -1);
-                //fitness = (getEvalValue(seq));
+            while(!isTerminal(legalActions, fitness)){
+
+                if(seq.size() <= cutoff){
+                    tmpState = new ArrayList<>(seq);
+                }else{
+                    tmpState = new ArrayList<>(seq.subList(seq.size()-cutoff,seq.size()));
+                }
+
+                Collections.sort(tmpState);
+
+
+                int randIndex;
+
+                if(p.contains(tmpState)){
+                    List<Double> values = p.getValues(tmpState, legalActions);
+
+                    double sum = 0;
+
+                    for (int j = 0; j < values.size(); j++) {
+                        sum += Math.exp(values.get(j));
+                    }
+
+                    double threshold = SharedData.random.nextDouble() * sum;
+                    double tmpSum = 0;
+                    randIndex = SharedData.random.nextInt(values.size());
+                    tmpSum += Math.exp(values.remove(randIndex));
+
+                    while (tmpSum < threshold) {
+                        randIndex = SharedData.random.nextInt(values.size());
+                        tmpSum += Math.exp(values.remove(randIndex));
+                    }
+                } else {
+                    randIndex = SharedData.random.nextInt(legalActions.size());
+                }
+
+
+                seq.add(legalActions.get(randIndex));
+                legalActions = customActionsSingleCalc(legalActions, legalActions.get(randIndex));
             }
+
             evaluated++;
 
-            //fitness = (getSimulationEval(seq));
-            fitness = getEvalValue(seq);
-            return new Pair<Double, ArrayList<SpritePointData>>(fitness, new ArrayList<>(seq));
-        } else {
-            //currentPolicy = (MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Double>) currentPolicy.clone();
-            Pair<Double, ArrayList<SpritePointData>> bestResult = new Pair<Double, ArrayList<SpritePointData>>(Double.MIN_VALUE, null);
+            bestResult = new Pair<>(new Pair<>(getEvalValue(translate(seq)), seq), p);
+
+        }else {
+
+
+
+            bestResult = new Pair<>(prevBest, p);
+            boolean foundBetter = false;
+
+            if(level == SharedData.NRPA_level){
+                foundBetter = true;
+            }
+
             for (int i = 0; i < numberOfIterations; i++) {
+                if(level > 1){
+                    curResult = recursiveNRPA(level-1, new Policy(p, true), new Pair<>(Double.MIN_VALUE, new ArrayList<Integer>()));
+                } else {
+                    curResult = recursiveNRPA(level-1, new Policy(p, false), new Pair<>(Double.MIN_VALUE, new ArrayList<Integer>()));
 
-                if (!isCanceled.get()) {
+                }
 
-                    Pair<Double, ArrayList<SpritePointData>> result = selectAction(level - 1, currentPolicy,isCanceled);
-
-                    if (result.first > bestResult.first) {
-                        bestResult = result;
-                        //System.out.println(bestResult.first);
-                        //policy = currentPolicy;
-
+                if(curResult.first.first >= bestResult.first.first){
+                    if(curResult.first.first >= bestResult.first.first){
+                        foundBetter = true;
+                        //System.out.println("better");
                     }
 
-                } else {
-                    return bestResult;
+                    bestResult = curResult;
+                }
+
+
+                if(foundBetter){
+                    p = adapt(bestResult.first, p);
+                    foundBetter = false;
                 }
 
             }
-            currentPolicy = adaptPolicy(currentPolicy, bestResult.second);
-            policy = currentPolicy;
-            return bestResult;
+
+            /*
+            if(foundBetter){
+                p = adapt(bestResult.first, p);
+            }
+            */
         }
 
+        bestResult.second = p;
+
+        if(level == 1){
+            //System.out.println(p.size());
+        }
+        //scoreL.set(level, bestResult.first.first);
+        return bestResult;
     }
 
-    public Pair<Pair<Double, ArrayList<Integer>>, ArrayList<SpritePointData>> selectAction2(int level, HashMap<ArrayList<SpritePointData>, HashMap<Integer, Double>> currentPolicy, Supplier<Boolean> isCanceled) {
+    public ArrayList<Pair<Pair<Double, ArrayList<Integer>>, Policy>> recursiveBeamNRPA(int level, Policy p, ArrayList<Pair<Pair<Double, ArrayList<Integer>>, Policy>> prevBest){
+        //double best = scoreL.get(level);
+        //double best = Double.MIN_VALUE;
 
-        if (level == 0) {
-            seq.clear();
+        if(level == 0){
+            ArrayList<Integer> seq = new ArrayList<>();
             double fitness = 0;
-            actions = new ArrayList<>(allPossibleActions);
-            ArrayList<Integer> resultRollout = new ArrayList<>();
+            ArrayList<Integer> legalActions = new ArrayList<>(actionIndicies);
 
-            while (!isTerminal(actions, fitness)) {
-                candidates2 = getSuitableActions2(seq, actions, currentPolicy);
-                int selectedChild;
+            ArrayList<Integer> tmpState;
 
-                if(candidates2 == null){
-                    selectedChild = SharedData.random.nextInt(actions.size());
-                    best2 = new ArrayList<>();
-                } else {
-                    selectedChild = candidates2.get(SharedData.random.nextInt(candidates2.size()));
+            while(!isTerminal(legalActions, fitness)){
+
+                if(seq.size() <= cutoff){
+                    tmpState = new ArrayList<>(seq);
+                }else{
+                    tmpState = new ArrayList<>(seq.subList(seq.size()-cutoff,seq.size()));
                 }
 
-                seq.add(actions.get(selectedChild));
-                resultRollout.add(selectedChild);
+                Collections.sort(tmpState);
 
-                actions = customActionsSingleCalc(actions, actions.get(selectedChild), selectedChild);
-                //fitness = (getEvalValue(seq));
+
+                int randIndex;
+
+                if(p.contains(tmpState)){
+                    List<Double> values = p.getValues(tmpState, legalActions);
+
+                    double sum = 0;
+
+                    for (int j = 0; j < values.size(); j++) {
+                        sum += Math.exp(values.get(j));
+                    }
+
+                    double threshold = SharedData.random.nextDouble() * sum;
+                    double tmpSum = 0;
+                    randIndex = SharedData.random.nextInt(values.size());
+                    tmpSum += Math.exp(values.remove(randIndex));
+
+                    while (tmpSum < threshold) {
+                        randIndex = SharedData.random.nextInt(values.size());
+                        tmpSum += Math.exp(values.remove(randIndex));
+                    }
+                } else {
+                    randIndex = SharedData.random.nextInt(legalActions.size());
+                }
+
+
+                seq.add(legalActions.get(randIndex));
+                legalActions = customActionsSingleCalc(legalActions, legalActions.get(randIndex));
             }
+
             evaluated++;
 
-            //fitness = (getSimulationEval(seq));
-            fitness = getEvalValue(seq);
-            Pair<Double, ArrayList<Integer>> res1 = new Pair<Double, ArrayList<Integer>>(fitness, resultRollout);
-            Pair<Pair<Double, ArrayList<Integer>>, ArrayList<SpritePointData>> res2 = new Pair<>(res1, new ArrayList<>(seq));
+            ArrayList<Pair<Pair<Double, ArrayList<Integer>>, Policy>>  rolloutResult = new ArrayList<Pair<Pair<Double, ArrayList<Integer>>, Policy>>();
+            rolloutResult.add(new Pair<>(new Pair<>(getEvalValue(translate(seq)), seq), null));
+            return rolloutResult;
+        }else {
 
-            return res2;
-        } else {
-            //currentPolicy = (MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Double>) currentPolicy.clone();
-            Pair<Pair<Double, ArrayList<Integer>>, ArrayList<SpritePointData>> bestResult = new  Pair<Pair<Double, ArrayList<Integer>>, ArrayList<SpritePointData>>(new Pair<Double, ArrayList<Integer>>(Double.MIN_VALUE, null), null);
+            ArrayList<Pair<Pair<Double, ArrayList<Integer>>, Policy>> beam = new ArrayList<Pair<Pair<Double, ArrayList<Integer>>, Policy>>();
+
+
+            if(prevBest == null){
+            } else {
+                beam.addAll(prevBest);
+            }
+
+            beam.add(new Pair<>(new Pair<>(Double.MIN_VALUE, new ArrayList<Integer>()), p));
+
+
             for (int i = 0; i < numberOfIterations; i++) {
 
-                if (!isCanceled.get()) {
+                ArrayList<Pair<Pair<Double, ArrayList<Integer>>, Policy>> newBeam = new ArrayList<>();
 
-                    Pair<Pair<Double, ArrayList<Integer>>, ArrayList<SpritePointData>> result = selectAction2(level - 1, currentPolicy,isCanceled);
+                for (int j = 0; j < beam.size(); j++) {
 
-                    if (result.first.first > bestResult.first.first) {
-                        bestResult = result;
-                        //System.out.println(bestResult.first);
-                        //policy = currentPolicy;
-
+                    boolean added = false;
+                    for (int l = 0; l < newBeam.size(); l++) {
+                        if(newBeam.get(l).first.first < beam.get(j).first.first){
+                            newBeam.add(l, beam.get(j));
+                            added = true;
+                            break;
+                        }
                     }
 
-                } else {
-                    return bestResult;
-                }
-
-            }
-            currentPolicy = adaptPolicy2(currentPolicy, bestResult.second, bestResult.first.second);
-            //System.out.println(sets2.size());
-
-            keyMap = currentPolicy;
-            return bestResult;
-        }
-
-    }
-
-    private MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Double> adaptPolicy(MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Double> currentPolicy, ArrayList<SpritePointData> seq) {
-        tmpPol = (MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Double>) currentPolicy.clone();
-
-
-        for (int i = 0; i < seq.size(); i++) {
-            tmpSequence = new ArrayList<>();
-
-            if (i == 0 || cutoff == 0) {
-
-            } else {
-                if (i > cutoff){
-                    tmpSequence = new ArrayList<SpritePointData>(seq.subList(i - cutoff, i));
-                } else {
-                    tmpSequence = new ArrayList<SpritePointData>(seq.subList(0, i));
-                }
-            }
-
-            Collections.sort(tmpSequence);
-
-            SpritePointData key2 = seq.get(i);
-            double currentValue = tmpPol.get(tmpSequence, key2);
-            double newValue = currentValue + alpha;
-
-            tmpPol.put(tmpSequence, key2, newValue);
-
-            Collection<Double> collectionValues = currentPolicy.get(tmpSequence).values();
-            double sum = 0;
-            for (Double value : collectionValues) {
-                sum = sum + Math.exp(value);
-            }
-
-
-            others = currentPolicy.get(tmpSequence).entrySet();
-            for (Map.Entry<SpritePointData, Double> other : others) {
-                SpritePointData k2 = other.getKey();
-                double tmp = tmpPol.get(tmpSequence, k2);
-                double tmp2 = currentPolicy.get(tmpSequence, k2);
-                tmp = tmp - (alpha * Math.exp(tmp2) / sum);
-                tmpPol.put(tmpSequence, k2, tmp);
-            }
-
-
-
-        }
-
-        return tmpPol;
-    }
-
-    private HashMap<ArrayList<SpritePointData>, HashMap<Integer, Double>> adaptPolicy2(HashMap<ArrayList<SpritePointData>, HashMap<Integer, Double>> currentPolicy, ArrayList<SpritePointData> seq, ArrayList<Integer> seqIndex) {
-
-        for (int i = 0; i < seq.size(); i++) {
-            Integer actionIndex = seqIndex.get(i);
-
-            tmpSequence = new ArrayList<>();
-
-            if (i == 0 || cutoff == 0) {
-
-            } else {
-                if (i > cutoff){
-                    tmpSequence = new ArrayList<SpritePointData>(seq.subList(i - cutoff, i));
-                } else {
-                    tmpSequence = new ArrayList<SpritePointData>(seq.subList(0, i));
-                }
-            }
-
-            Collections.sort(tmpSequence);
-            HashMap<Integer, Double> tmpKey2Map = new HashMap<>(keyMap.get(tmpSequence));
-
-
-            double currentValue = tmpKey2Map.get(actionIndex);
-            double newValue = currentValue + alpha;
-
-            tmpKey2Map.put(actionIndex, newValue);
-
-            Collection<Double> collectionValues = currentPolicy.get(tmpSequence).values();
-            double sum = 0;
-            for (Double value : collectionValues) {
-                sum = sum + Math.exp(value);
-            }
-
-
-            others2 = currentPolicy.get(tmpSequence).entrySet();
-            for (Map.Entry<Integer, Double> other : others2) {
-                Integer k2 = other.getKey();
-
-                double tmp = tmpKey2Map.get(k2);
-                double tmp2 = currentPolicy.get(tmpSequence).get(k2);
-
-                tmp = tmp - (alpha * Math.exp(tmp2) / sum);
-                tmpKey2Map.put(k2, tmp);
-            }
-
-
-            currentPolicy.put(tmpSequence, tmpKey2Map);
-        }
-
-        return currentPolicy;
-    }
-
-    private ArrayList<SpritePointData> getSuitableActions(ArrayList<SpritePointData> sequence, ArrayList<SpritePointData> actions, MultiKeyHashMap<ArrayList<SpritePointData>, SpritePointData, Double> currentPolicy) {
-
-        tmpSequence = new ArrayList<>(sequence);
-
-        if(tmpSequence.size() > cutoff){
-            tmpSequence = new ArrayList<SpritePointData>(tmpSequence.subList(tmpSequence.size()-cutoff, tmpSequence.size()));
-        }
-
-        Collections.sort(tmpSequence);
-
-        best.clear();
-
-        double min = Double.MAX_VALUE;
-        double max = Double.MIN_VALUE;
-        double sum = 0;
-
-        sets.clear();
-        sumOfSets.clear();
-
-        for (SpritePointData action : actions) {
-            double currentPolicyValue = 0;
-
-
-                if (currentPolicy.containsKey(tmpSequence, action)) {
-                    currentPolicyValue = currentPolicy.get(tmpSequence, action);
-                } else {
-                    currentPolicy.put(tmpSequence, action, currentPolicyValue);
-                }
-
-
-            double actualValue = Math.exp(currentPolicyValue);
-
-            if (sumOfSets.contains(actualValue)) {
-                int index = sumOfSets.indexOf(actualValue);
-                sets.get(index).add(action);
-            } else {
-                sumOfSets.add(actualValue);
-                ArrayList tmp = new ArrayList<SpritePointData>();
-                tmp.add(action);
-                sets.add(new ArrayList<>(tmp));
-            }
-
-            sum = sum + actualValue;
-
-            if (actualValue < min) {
-                min = actualValue;
-            }
-
-            if (actualValue > max) {
-                max = actualValue;
-            }
-        }
-
-        double explore = SharedData.random.nextDouble();
-
-        if (explore < exploration) {
-            return actions;
-        } else {
-
-            if (min == max) {
-                best.addAll(actions);
-                return best;
-            }
-
-            double threshold = SharedData.random.nextDouble() * (sum);
-            double tmpSum = 0;
-
-            for (int i = 0; i < sumOfSets.size(); i++) {
-                tmpSum = tmpSum + sumOfSets.get(i) * sets.get(i).size();
-                if (tmpSum >= threshold) {
-                    return sets.get(i);
-                }
-            }
-
-
-        }
-
-        return actions;
-    }
-
-    private ArrayList<Integer> getSuitableActions2(ArrayList<SpritePointData> sequence, ArrayList<SpritePointData> actions,  HashMap<ArrayList<SpritePointData>, HashMap<Integer, Double>> currentPolicy) {
-
-        tmpSequence = new ArrayList<>(sequence);
-
-        if(tmpSequence.size() > cutoff){
-            tmpSequence = new ArrayList<SpritePointData>(tmpSequence.subList(tmpSequence.size()-cutoff, tmpSequence.size()));
-        }
-
-        Collections.sort(tmpSequence);
-
-        best2.clear();
-
-        double min = Double.MAX_VALUE;
-        double max = Double.MIN_VALUE;
-        double sum = 0;
-
-        sets2.clear();
-        sumOfSets.clear();
-
-        if(!currentPolicy.containsKey(tmpSequence)){
-            currentPolicy.put(tmpSequence, new HashMap<Integer, Double>((int)(actions.size() / 0.75) + 1));
-        }
-
-        HashMap<Integer, Double> k2Map = currentPolicy.get(tmpSequence);
-
-        boolean done = false;
-
-        for (int i = 0; i < actions.size(); i++) {
-            Integer indexAction = new Integer(i);
-            double currentPolicyValue = 0;
-
-            if(k2Map.containsKey(indexAction)){
-                currentPolicyValue = k2Map.get(indexAction);
-            } else {
-                k2Map.put(indexAction, currentPolicyValue);
-            }
-
-
-            double actualValue = Math.exp(currentPolicyValue);
-
-            if (sumOfSets.contains(actualValue)) {
-                int index = sumOfSets.indexOf(actualValue);
-                sets2.get(index).add(indexAction);
-            } else {
-                sumOfSets.add(actualValue);
-                ArrayList tmp = new ArrayList<Integer>();
-                tmp.add(indexAction);
-                sets2.add(new ArrayList<>(tmp));
-            }
-
-
-            sum = sum + actualValue;
-
-            if (actualValue < min) {
-                min = actualValue;
-            }
-
-            if (actualValue > max) {
-                max = actualValue;
-            }
-        }
-
-
-        double explore = SharedData.random.nextDouble();
-
-        if (explore < exploration) {
-            best2 = null;
-            done = true;
-        } else if (!done){
-
-            if (min == max) {
-                best2 = null;
-                done = true;
-            }
-
-            if(!done){
-                ArrayList<Integer> current;
-                double threshold = SharedData.random.nextDouble() * (sum);
-                double tmpSum = 0;
-
-                do{
-                    int selected = SharedData.random.nextInt(sets2.size());
-                    tmpSum = tmpSum + sumOfSets.get(selected) * sets2.get(selected).size();
-                    current = new ArrayList<>(sets2.remove(selected));
-                    if(sets2.size() == 0){
-                        return current;
+                    if(!added){
+                        newBeam.add(beam.get(j));
                     }
-                }while(tmpSum < threshold);
 
-                return current;
+                    ArrayList<Pair<Pair<Double, ArrayList<Integer>>, Policy>> beam1 = recursiveBeamNRPA(level-1, new Policy(p, true),null);
+
+                    for (int k = 0; k < beam1.size(); k++) {
+
+                        int index = 0;
+                        boolean added2 = false;
+                        for (int l = 0; l < newBeam.size(); l++) {
+                            if(newBeam.get(l).first.first < beam1.get(k).first.first){
+                                index = l;
+                                added2 = true;
+                                break;
+                            }
+                        }
+
+                        if(!added2 || index >= SharedData.NRPA_B){
+                            //newBeam.add(beam1.get(k));
+                        } else {
+                            beam1.get(k).second = adapt(beam1.get(k).first, p);
+                            newBeam.add(index, beam1.get(k));
+                        }
+                    }
+                }
+
+                int end = SharedData.NRPA_B;
+
+                if(beam.size() < SharedData.NRPA_B){
+                    end = beam.size();
+                }
+
+                beam = new ArrayList<>(newBeam.subList(0, end));
+
             }
 
-
+            return beam;
         }
 
-        return best2;
     }
+
+    private Policy adapt(Pair<Double, ArrayList<Integer>> bestResult, Policy p){
+        Policy newP = new Policy(p, true);
+
+        ArrayList<Integer> state = new ArrayList<>();
+        ArrayList<Integer> legalActions = new ArrayList<>(actionIndicies);
+
+        for (int i = 0; i < bestResult.second.size()-1; i++) {
+            ArrayList<Integer> tmpState = new ArrayList<>(state);
+            Collections.sort(tmpState);
+
+            newP.verifyState(tmpState, actionIndicies, (int) numberOfSprites);
+            newP.changeSingleValue(tmpState, bestResult.second.get(i), alpha);
+
+            p.verifyState(tmpState, actionIndicies, (int) numberOfSprites);
+            List<Double> values = p.getValues(tmpState, legalActions);
+
+            double sum = 0;
+
+            for (int j = 0; j < values.size(); j++) {
+                sum += Math.exp(values.get(j));
+            }
+
+            for (int j = 0; j < legalActions.size(); j++) {
+                newP.changeSingleValue(tmpState, legalActions.get(j), -(alpha * Math.exp(p.getSingleValue(tmpState, legalActions.get(j))) / sum));
+            }
+
+            if(cutoff > 0){
+                state.add(bestResult.second.get(i));
+                if(state.size() > cutoff){
+                    state = new ArrayList<Integer>(state.subList(1,cutoff+1));
+                }
+            }
+
+            legalActions = customActionsSingleCalc(legalActions, bestResult.second.get(i));
+        }
+
+        return newP;
+    }
+
+
+    public ArrayList<SpritePointData> translate(ArrayList<Integer> seq){
+        ArrayList<SpritePointData> tmpSeq = new ArrayList<>();
+
+        for (int i = 0; i < seq.size(); i++) {
+            tmpSeq.add(allPossibleActions.get(seq.get(i)));
+        }
+
+        return tmpSeq;
+    }
+
 
     public GeneratedLevel getLevel(ArrayList<SpritePointData> prev, boolean verbose) {
         for (int i = 0; i < prev.size(); i++) {
@@ -585,10 +465,10 @@ public class NRPA {
         return value;
     }
 
-    private boolean isTerminal(ArrayList<SpritePointData> actions, double fitness) {
+    private boolean isTerminal(ArrayList<Integer> actions, double fitness) {
         double currentCoverage = (possiblePositions - (actions.size() / allSprites.size())) / possiblePositions;
         //System.out.println((currentCoverage > SharedData.MAX_COVER_PERCENTAGE) + " " +  (getSoftValue(seq) >= 1) + " "+ seq.size());
-        return ((currentCoverage >= SharedData.MAX_COVER_PERCENTAGE) || fitness >= 1);
+        return ((currentCoverage >= SharedData.desiredCoverage) || fitness >= 1);
     }
 
 }

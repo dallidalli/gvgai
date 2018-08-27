@@ -1,0 +1,25 @@
+LevelMapping
+    a > wall 
+    b > goal 
+    c > slowLtruck 
+    d > forestDense 
+    e > fastRtruck 
+    f > forestSparse 
+    g > slowRtruck 
+    h > water 
+    i > fastLtruck 
+    j > avatar 
+
+LevelDescription
+aaaaaaaaaaaa
+abc    d   a
+aef     g  a
+ac d h     a
+a   e      a
+a          a
+a g    e caa
+ah  i      a
+a       j  a
+ad    h   aa
+af     i   a
+aaaaaaaaaaaa
