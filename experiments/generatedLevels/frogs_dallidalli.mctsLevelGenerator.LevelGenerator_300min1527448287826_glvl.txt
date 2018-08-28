@@ -1,0 +1,19 @@
+LevelMapping
+    a > wall 
+    b > goal 
+    c > fastLtruck 
+    d > avatar 
+
+LevelDescription
+aaaaaaaaaaaa
+a  a  a b  a
+a          a
+a   c      a
+a        a a
+a         aa
+aa         a
+a          a
+a  d       a
+a          a
+a      a   a
+aaaaaaaaaaaa

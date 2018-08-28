@@ -13,9 +13,7 @@ import tools.ElapsedCpuTimer;
 import tools.IO;
 import tools.StatSummary;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;

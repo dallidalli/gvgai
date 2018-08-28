@@ -1,0 +1,31 @@
+---
+title: "ThesisExperiments"
+author: "Eric Dallmeier"
+date: "10 April 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("functions.R")
+setwd("C:/Users/dalli/IdeaProjects/gvgai/experiments")
+```
+
+```{r}
+
+items <- list()
+items[[1]] <- c("MCTS_8.0x8.0_C0.05_1")
+items[[2]] <- c("MCTS_8.0x8.0_C0.05_restart10000")
+items[[3]] <- c("MCTS_8.0x8.0_C0.05_restart50000")
+items[[4]] <- c("MCTS_8.0x8.0_C0.05_restart150000")
+items[[5]] <- c("MCTS_8.0x8.0_C0.05_restart500000")
+
+folder <- c("MCTS_restart/")                     
+                     
+
+res <- loadJavaCSV(folder,items)
+
+plotResults(res)
+
+```
+
