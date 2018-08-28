@@ -7,6 +7,9 @@ import dallidalli.commonClasses.SpritePointData;
 
 import java.util.ArrayList;
 
+/**
+ * Class to apply MCTS to generate a level
+ */
 public class MCTS{
 
     public double C = SharedData.MCTS_Cvalue; //0.05
@@ -35,6 +38,7 @@ public class MCTS{
     public ArrayList<SpritePointData> freePositions = new ArrayList<SpritePointData>();
     public ArrayList<SpritePointData> totalActions = new ArrayList<>();
 
+
     public MCTS(int width, int height, boolean empty, boolean SPMCTS) {
         if(SPMCTS){
             useSPMCTS = 1;
@@ -48,8 +52,7 @@ public class MCTS{
         } else {
             if(SharedData.CONSTRUCTIVE_INITIALIZATION){
                 currentLevel.InitializeConstructive();
-            }
-            else{
+            } else {
                 currentLevel.InitializeRandom();
             }
         }
@@ -62,48 +65,6 @@ public class MCTS{
         }
         allSprites.clear();
         allSprites.addAll(tmp);
-
-        /*
-
-        ArrayList<String> tmpHarmful = new ArrayList<>();
-        ArrayList<String> tmpOther = new ArrayList<>();
-        ArrayList<String> tmpCollectable = new ArrayList<>();
-        ArrayList<String> tmpSolid = new ArrayList<>();
-        ArrayList<String> tmpAvatar = new ArrayList<>();
-
-        for (String sprite:allSprites) {
-            if(SharedData.gameAnalyzer.getHarmfulSprites().contains(sprite)){
-                tmpHarmful.add(sprite);
-            } else if(SharedData.gameAnalyzer.getOtherSprites().contains(sprite)){
-                tmpOther.add(sprite);
-            } else if(SharedData.gameAnalyzer.getCollectableSprites().contains(sprite)){
-                tmpCollectable.add(sprite);
-            } else if(SharedData.gameAnalyzer.getSolidSprites().contains(sprite)){
-                tmpSolid.add(sprite);
-            } else if(SharedData.gameAnalyzer.getAvatarSprites().contains(sprite)){
-                tmpAvatar.add(sprite);
-            }
-        }
-
-        int maxAmount = Math.max(tmpHarmful.size(), Math.max(tmpOther.size(), Math.max(tmpCollectable.size(), Math.max(tmpSolid.size(), tmpAvatar.size()))));
-
-        for (int i = 0; i < maxAmount - tmpHarmful.size(); i++){
-            allSprites.add(tmpHarmful.get(SharedData.random.nextInt(tmpHarmful.size())));
-        }
-        for (int i = 0; i < maxAmount - tmpOther.size(); i++){
-            allSprites.add(tmpOther.get(SharedData.random.nextInt(tmpOther.size())));
-        }
-        for (int i = 0; i < maxAmount - tmpCollectable.size() -1; i++){
-            allSprites.add(tmpCollectable.get(SharedData.random.nextInt(tmpCollectable.size())));
-        }
-        for (int i = 0; i < maxAmount - tmpSolid.size() +1; i++){
-            allSprites.add(tmpSolid.get(SharedData.random.nextInt(tmpSolid.size())));
-        }
-        for (int i = 0; i < maxAmount - tmpAvatar.size(); i++){
-            allSprites.add(tmpAvatar.get(SharedData.random.nextInt(tmpAvatar.size())));
-        }
-
-        */
 
         calcPositions();
         calcActionsInitial();
@@ -146,17 +107,7 @@ public class MCTS{
             }
 
 
-
             double uctValue = 0;
-
-            /*
-            if(nTotalVisitsParent < actions.size()*0.2){
-                uctValue = SharedData.random.nextDouble() * SharedData.EIPSLON;
-            } else{
-                uctValue = totValueChild / (nVisitsChild ) + C*Math.sqrt(Math.log(nTotalVisitsParent) / (nVisitsChild )) + SharedData.random.nextDouble() * SharedData.EIPSLON;
-            }
-            */
-
 
             uctValue = totValueChild / (nVisitsChild + SharedData.EIPSLON)
                     + C*Math.sqrt(Math.log(nTotalVisitsParent) / (nVisitsChild + SharedData.EIPSLON))
@@ -182,8 +133,6 @@ public class MCTS{
             return rollOut(selectedChild);
         } else {
             getLevel(visitedAction, false);
-            //currentLevel.calculateSoftConstraints(false, useNewConstraint);
-            //double softConstraint = currentLevel.getConstrainFitness();
             double softConstraint = currentLevel.calculateFitness(SharedData.EVALUATION_TIME);
             resetLevel(visitedAction);
             return softConstraint;
@@ -234,6 +183,7 @@ public class MCTS{
 
 
         double value = rollOut(curIndex);
+
         if(value > bestValue){
             bestValue = value;
             bestSequence = new ArrayList<>(visitedAction);
@@ -244,13 +194,13 @@ public class MCTS{
 
 
         root.update(value);
+
         currentNode = root;
         for (int i = 0; i < visitedIndex.size(); i++) {
             currentNode = currentNode.getChildren()[visitedIndex.get(i)];
             currentNode.update(value);
         }
 
-        //calcActions();
     }
 
 
@@ -262,7 +212,7 @@ public class MCTS{
 
 
         int start = (int) (Math.floor(indexKnown / allSprites.size())*allSprites.size());
-        int end = (int) (start+allSprites.size());
+        int end = (start + allSprites.size());
 
 
         for (int i = start; i < end; i++) {
@@ -324,11 +274,6 @@ public class MCTS{
     }
 
     public void restart() {
-        root = new Node();
-        numberOfNodes = 1;
-    }
-
-    public void restart2(){
         int deleted = 0;
 
         for (int i = 0; i < root.getChildren().length; i++) {

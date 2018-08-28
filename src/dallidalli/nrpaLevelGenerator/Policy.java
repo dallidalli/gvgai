@@ -4,6 +4,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+/**
+ * Class representing a NRPA-policy
+ */
 public class Policy {
 
     private HashMap<List<Integer>, HashMap<Integer, Double>> policy = new HashMap<>();
@@ -28,7 +31,7 @@ public class Policy {
             for (int i = 0; i < state.size(); i++) {
                 if(validState){
                     int start = (int) (Math.floor(state.get(i) / numberOfSprites)*numberOfSprites);
-                    int end = (int) (start+numberOfSprites);
+                    int end = (start + numberOfSprites);
 
                     List<Integer> range = IntStream.range(start, end).boxed().collect(Collectors.toList());
 
@@ -81,7 +84,7 @@ public class Policy {
 
             for (int i = 0; i < state.size(); i++) {
                 int start = (int) (Math.floor(state.get(i) / numberOfSprites)*numberOfSprites);
-                int end = (int) (start+numberOfSprites);
+                int end = (start + numberOfSprites);
 
                 List<Integer> range = IntStream.range(start, end).boxed().collect(Collectors.toList());
 
@@ -142,7 +145,7 @@ public class Policy {
     public static <T> List<List<T>> combination(List<T> values, int size) {
 
         if (0 == size) {
-            return Collections.singletonList(Collections.<T> emptyList());
+            return Collections.singletonList(Collections.emptyList());
         }
 
         if (values.isEmpty()) {

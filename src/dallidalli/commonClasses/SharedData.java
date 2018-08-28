@@ -90,24 +90,57 @@ public class SharedData {
      */
     public static tracks.levelGeneration.constructiveLevelGenerator.LevelGenerator constructiveGen;
 
+    /**
+     * score value in case the agent reached a draw
+     */
     public static double DRAW_FITNESS = 0.5;
 
+    /**
+     * threshold after which a simulation will be used for evaluation of the level.
+     * <p>
+     * note that a value higher than 1 can never be reached.
+     */
     public static double scoreThreshold = 2;//0.93;
 
+    /**
+     * whether the new constraints should be used
+     */
+    public static boolean useNewConstraints = true;
+
+    /**
+     * MCTS parameters
+     */
     public static double MCTS_Cvalue = 1.4; // 0.05
     public static double MCTS_restart = 150000;
+
+    /**
+     * NMCS parameters
+     */
     public static int NMCS_level = 1;
     public static boolean NMCS_injected = true;
-    public static boolean useNewConstraints = true;
+
+    /**
+     * NRPA parameters
+     */
     public static double NRPA_alpha = 1;
     public static int NRPA_cutoff = 1;
     public static int NRPA_level = 2;
     public static int NRPA_numIterations = 100; //(int) (5000/NRPA_level/MAX_SIZE);
     public static int NRPA_B = 4;
 
+    /**
+     * used to hold the weights for the features of the evaluation function
+     */
     public static ArrayList<Double> eval_weights = new ArrayList<Double>();
 
+    /**
+     * desired coverage
+     */
     public static double desiredCoverage = 0;
+
+    /**
+     * name of the current game
+     */
     public static String gameName = "";
 
 }

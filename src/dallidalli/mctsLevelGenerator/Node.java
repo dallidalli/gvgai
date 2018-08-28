@@ -1,6 +1,9 @@
 package dallidalli.mctsLevelGenerator;
 
 
+/**
+ * Class used to represent a Node in MCTS
+ */
 public class Node {
 
     private Node[] children = null;
@@ -15,11 +18,6 @@ public class Node {
 
     public void expand(int numberOfChildren){
         this.children = new Node[numberOfChildren];
-        /*
-        for(int i = 0; i < numberOfChildren; i++){
-            this.children[i] = new Node();
-        }
-        */
     }
 
     public void reset(){

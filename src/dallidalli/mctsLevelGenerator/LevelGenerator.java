@@ -14,8 +14,6 @@ import java.util.Random;
 
 public class LevelGenerator extends AbstractLevelGenerator{
 
-    private final Object bestLevel;
-    private ArrayList<Double> bestFitness;
     private MCTS resultMCTS;
 
     public LevelGenerator(GameDescription game, ElapsedCpuTimer elapsedTimer){
@@ -23,14 +21,11 @@ public class LevelGenerator extends AbstractLevelGenerator{
         SharedData.gameDescription = game;
         SharedData.gameAnalyzer = new GameAnalyzer(game);
         SharedData.constructiveGen = new tracks.levelGeneration.constructiveLevelGenerator.LevelGenerator(game, null);
-        bestLevel = null;
-        bestFitness = null;
     }
 
     @Override
     public String generateLevel(GameDescription game, ElapsedCpuTimer elapsedTimer) {
         //initialize the statistics objects
-        bestFitness = new ArrayList<Double>();
         SharedData.gameDescription = game;
 
         int size = 0;
@@ -52,7 +47,9 @@ public class LevelGenerator extends AbstractLevelGenerator{
         double avgTime = 0.0;
         double totalTime = 0.0;
         double lastTime = 0.0;
+
         ElapsedCpuTimer timer = new ElapsedCpuTimer();
+
         int numberOfIterations = 0;
         double avgScore = 0.0;
         double curScore = 0.0;
@@ -67,7 +64,6 @@ public class LevelGenerator extends AbstractLevelGenerator{
         //SharedData.random.setSeed(42);
 
 
-        // System.out.println(numberOfIterations + " " + elapsedTimer.remainingTimeMillis() + " " + avgTime + " " + worstTime);
         while(elapsedTimer.remainingTimeMillis() > 2 * avgTime &&
                 elapsedTimer.remainingTimeMillis() > 2*worstTime){
 
@@ -116,54 +112,22 @@ public class LevelGenerator extends AbstractLevelGenerator{
                 System.out.println(avgScore / numberOfIterations);
                 System.out.println(curScore);
                 System.out.println(search.numberOfNodes);
-                System.out.println(search.numberOfNodes * ((8 + 8 + 24*700) / 1000000.0) + " MB");
-                System.out.println(numberOfIterations);
 
 
                 if(search.numberOfNodes >= restart){
-                    search.restart2();
-
-
-                    //amountNodes = search.numberOfNodes;
-                    //System.out.println(amountNodes);
-                    //if(search.numberOfNodes >= restart*2){
-                        //search.restart();
-                    //}
+                    search.restart();
                 }
-                /*
-                if(numberOfIterations % restart == 0 && restart != 0 && numberOfIterations != 0){
-                    double amountNodes = search.numberOfNodes;
-                    //System.out.println(amountNodes);
-
-                    if(amountNodes >= restart){
-                         search.restart2();
-
-
-                        //amountNodes = search.numberOfNodes;
-                        //System.out.println(amountNodes);
-                        if(amountNodes >= restart*2){
-                            //search.restart();
-                        }
-                    }
-
-
-
-                }*/
             }
 
             added = false;
         }
 
-
-        //TreeView tv = new TreeView(root);
-        //tv.showTree("After " + numberOfIterations + " play outs");
         ArrayList<SpritePointData> best = search.getBestMap();
 
 
 
         search.getLevel(best, true);
         resultMCTS = search;
-        // System.out.println("Done " + numberOfIterations);
 
         String name = "MCTS";
         String setting = SharedData.MIN_SIZE + "x" + SharedData.MAX_SIZE + "_C" + String.valueOf(search.C) + "_restart"+ restart;

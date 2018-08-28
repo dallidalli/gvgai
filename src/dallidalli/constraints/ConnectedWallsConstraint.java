@@ -4,6 +4,9 @@ import tools.Pair;
 
 import java.util.ArrayList;
 
+/**
+ * Constraint to check if all walls are connected to each other
+ */
 public class ConnectedWallsConstraint extends AbstractConstraint {
 
     public ArrayList<String>[][] level;
@@ -123,75 +126,6 @@ public class ConnectedWallsConstraint extends AbstractConstraint {
                 achieved++;
             }
         }
-
-       /* for(int y = 1; y < level.length -1; y++){
-            for(int x = 1; x < level[y].length -1; x++){
-                if(level[y][x].size() > 0){
-                    if(level[y][x].get(0).equals(solidSprite)){
-                        total++;
-
-                        ArrayList<Pair<Integer, Integer>> points = new ArrayList<>();
-                        points.add(new Pair<>(x,y-1));
-                        points.add(new Pair<>(x,y+1));
-                        points.add(new Pair<>(x-1,y));
-                        points.add(new Pair<>(x+1,y));
-                        points.add(new Pair<>(x-1,y-1));
-                        points.add(new Pair<>(x+1,y+1));
-                        points.add(new Pair<>(x-1,y+1));
-                        points.add(new Pair<>(x+1,y-1));
-
-                        int counterDirect= 0;
-                        int counterIndirect = 0;
-
-                        int left = 0;
-                        int right = 0;
-                        int top = 0;
-                        int down = 0;
-                        int tl = 0;
-                        int tr = 0;
-                        int bl = 0;
-                        int br = 0;
-
-                        for (int i = 0; i < points.size(); i++) {
-                            Pair<Integer, Integer> point = points.get(i);
-
-                                if(level[point.second][point.first].size() > 0){
-                                    if(level[point.second][point.first].get(0).equals(solidSprite)){
-                                        if(i < 4){
-                                            counterDirect++;
-                                        } else {
-                                            counterIndirect++;
-                                        }
-
-
-                                        switch (i){
-                                            case 0: top++; break;
-                                            case 1: down++; break;
-                                            case 2: left++; break;
-                                            case 3: right++; break;
-                                            case 4: tl++; break;
-                                            case 5: br++; break;
-                                            case 6: bl++; break;
-                                            case 7: tr++; break;
-                                            default: break;
-                                        }
-                                    }}
-                        }
-
-
-                        if(counterDirect == 2 && counterIndirect > 0){
-                            if(top == 1 && down == 1 && left == 0 && right == 0){
-                                achieved++;
-                            } else if(top == 0 && down == 0 && left == 1 && right == 1){
-                                achieved++;
-                            }
-                        } else if(counterDirect >0 &&counterDirect <= 2 && counterIndirect == 0){
-                                achieved++;
-                        }
-                    }
-                }
-            }
-        }*/
 
         return achieved/total;
     }

@@ -15,6 +15,9 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * Class representing a generated level
+ */
 public class GeneratedLevel implements Comparable<GeneratedLevel> {
 
     private HashMap<String, Integer> objects;
@@ -172,28 +175,25 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
     private void constructAgent(StateObservation obs){
         try{
             Class agentClass = Class.forName(SharedData.AGENT_NAME);
-            Constructor agentConst = agentClass.getConstructor(new Class[]{StateObservation.class, ElapsedCpuTimer.class});
+            Constructor agentConst = agentClass.getConstructor(StateObservation.class, ElapsedCpuTimer.class);
             automatedAgent = (AbstractPlayer)agentConst.newInstance(obs.copy(), null);
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
         try{
             Class agentClass = Class.forName(SharedData.NAIVE_AGENT_NAME);
-            Constructor agentConst = agentClass.getConstructor(new Class[]{StateObservation.class, ElapsedCpuTimer.class});
+            Constructor agentConst = agentClass.getConstructor(StateObservation.class, ElapsedCpuTimer.class);
             naiveAgent = (AbstractPlayer)agentConst.newInstance(obs.copy(), null);
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
         try{
             Class agentClass = Class.forName(SharedData.NAIVE_AGENT_NAME);
-            Constructor agentConst = agentClass.getConstructor(new Class[]{StateObservation.class, ElapsedCpuTimer.class});
+            Constructor agentConst = agentClass.getConstructor(StateObservation.class, ElapsedCpuTimer.class);
             doNothingAgent = (AbstractPlayer)agentConst.newInstance(obs.copy(), null);
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -540,7 +540,7 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
      */
     private int getNaivePlayerResult(StateObservation stateObs, int steps, AbstractPlayer agent){
         int i =0;
-        for(i=0;i<steps;i++){
+        for (i = 0; i < steps; i++) {
             if(stateObs.isGameOver()){
                 break;
             }
@@ -551,6 +551,13 @@ public class GeneratedLevel implements Comparable<GeneratedLevel> {
         return i;
     }
 
+
+    /**
+     * Calculate the fitness of the level using direct fitness functions.
+     *
+     * @param verbose
+     * @param useNew
+     */
     public void calculateSoftConstraints(boolean verbose, boolean useNew){
         if(useNew){
             Pair<Integer, Integer> avatarPosition;

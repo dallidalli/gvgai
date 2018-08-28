@@ -5,6 +5,9 @@ import tools.GameAnalyzer;
 
 import java.util.HashMap;
 
+/**
+ * Check that neutral and harmful sprites have at least a certain ratio.
+ */
 public class NeutralHarmfulRatioConstraint extends AbstractConstraint {
 
     public HashMap<String, Integer> spriteOccurrences;
@@ -28,9 +31,6 @@ public class NeutralHarmfulRatioConstraint extends AbstractConstraint {
         for (String sprite:spriteOccurrences.keySet()) {
             if(gameAnalyzer.getHarmfulSprites().contains(sprite)  || gameAnalyzer.getCollectableSprites().contains(sprite) || gameAnalyzer.getOtherSprites().contains(sprite)){
                 amountHarmful += spriteOccurrences.get(sprite);
-            /*} else if (gameAnalyzer.getGoalSprites().contains(sprite) || gameAnalyzer.getOtherSprites().contains(sprite) || gameAnalyzer.getCollectableSprites().contains(sprite) || gameAnalyzer.getSolidSprites().contains(sprite)){
-                amountNeutral += spriteOccurrences.get(sprite);
-            }*/
             } else if (gameAnalyzer.getSolidSprites().contains(sprite)){
                 amountNeutral += spriteOccurrences.get(sprite);
             }
@@ -45,7 +45,6 @@ public class NeutralHarmfulRatioConstraint extends AbstractConstraint {
         if (currentRatio >= 1){
             return 1;
         } else {
-            //System.out.println(amountNeutral + " " + amountHarmful + " " + currentRatio);
             return currentRatio;
         }
     }

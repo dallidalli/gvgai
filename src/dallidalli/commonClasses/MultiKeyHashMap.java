@@ -172,19 +172,5 @@ public class MultiKeyHashMap<K1,K2,V> {
         MultiKeyHashMap mapCopy = new MultiKeyHashMap();
         mapCopy.mkMap = this.mkMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         return mapCopy;
-/*
-
-        MultiKeyHashMap clone = new MultiKeyHashMap();
-
-
-        this.mkMap.keySet().stream().parallel().forEach(k1 -> {
-            this.get(k1).keySet().stream().forEach(k2 -> {
-                clone.put(k1, k2, this.get(k1,  k2));
-            });
-        });
-
-
-        return clone;
-*/
     }
 }

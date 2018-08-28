@@ -209,7 +209,7 @@ public class LevelGenerator extends AbstractLevelGenerator{
 				}
 				//start construct a corridor of random length
 				int length = 2 + random.nextInt(3);
-				ArrayList<Point> directions = new ArrayList<Point>(Arrays.asList(new Point[]{new Point(1,0), new Point(-1,0), new Point(0,-1), new Point(0,1)}));
+				ArrayList<Point> directions = new ArrayList<Point>(Arrays.asList(new Point(1, 0), new Point(-1, 0), new Point(0, -1), new Point(0, 1)));
 				while(length > 0){
 					if(random.nextDouble() < shuffleDirectionPercentage){
 						Collections.shuffle(directions);
@@ -494,6 +494,9 @@ public class LevelGenerator extends AbstractLevelGenerator{
 
 	/**
 	 * Add Collectable objects to the current level
+	 *
+	 * This method was improved to place at least one of each sprite before using the remaining space to randomly place sprites.
+	 *
 	 * @param game				the game description object
 	 * @param level				the current level
 	 * @param coverPercentage	the current cover percentages
@@ -504,6 +507,8 @@ public class LevelGenerator extends AbstractLevelGenerator{
 		ArrayList<String> otherSprites = gameAnalyzer.getCollectableSprites();
 		ArrayList<Point> freePositions = level.getAllFreeSpots();
 
+
+		// improvement by for loop
 		for(int i = 0; i < otherSprites.size(); i++){
 
 			if(numberOfOther > 0) {
@@ -541,6 +546,9 @@ public class LevelGenerator extends AbstractLevelGenerator{
 
 	/**
 	 * Add other kind of objects to the level
+	 *
+	 * This method was improved to place at least one of each sprite before using the remaining space to randomly place sprites.
+	 *
 	 * @param game				the current game description
 	 * @param level				the current game level
 	 * @param coverPercentage	the cover percentages
@@ -551,6 +559,8 @@ public class LevelGenerator extends AbstractLevelGenerator{
 		ArrayList<String> otherSprites = gameAnalyzer.getOtherSprites();
 		ArrayList<Point> freePositions = level.getAllFreeSpots();
 
+
+		// improvement by for loop
 		for(int i = 0; i < otherSprites.size(); i++){
 
 			if(numberOfOther > 0) {
@@ -626,8 +636,8 @@ public class LevelGenerator extends AbstractLevelGenerator{
 				levelSizeRandomPercentage * random.nextDouble()) + size);
 		int length = (int)Math.max(minSize + size, game.getAllSpriteData().size() * ((levelSizeMaxPercentage - levelSizeRandomPercentage) + 
 				levelSizeRandomPercentage * random.nextDouble()) + size);
-		width = (int)Math.min(width, maxSize + size);
-		length = (int)Math.min(length, maxSize + size);
+		width = Math.min(width, maxSize + size);
+		length = Math.min(length, maxSize + size);
 		
 		return generateLevel(game, elapsedTimer, width, length);
 	}

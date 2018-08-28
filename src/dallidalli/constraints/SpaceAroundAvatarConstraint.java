@@ -4,6 +4,9 @@ import tools.Pair;
 
 import java.util.ArrayList;
 
+/**
+ * Check that the tiles close to the avatar are empty.
+ */
 public class SpaceAroundAvatarConstraint extends AbstractConstraint {
 
     public Pair<Integer, Integer> avatarPosition;
@@ -20,7 +23,6 @@ public class SpaceAroundAvatarConstraint extends AbstractConstraint {
         next.addAll(getNeighbors(avatarPosition, next));
 
 
-
         ArrayList<Pair<Integer, Integer>> tmp = new ArrayList<Pair<Integer, Integer>>();
         tmp.addAll(next);
         while(next.size() > 0){
@@ -28,14 +30,6 @@ public class SpaceAroundAvatarConstraint extends AbstractConstraint {
         }
 
         next.addAll(tmp);
-
-        /*
-        ArrayList<Pair<Integer, Integer>> tmp2 = new ArrayList<Pair<Integer, Integer>>();
-        for (int i = 0; i < tmp.size(); i++) {
-            tmp2.addAll(getNeighbors(tmp.get(i), next));
-        }
-        next.addAll(tmp2);
-        */
 
         double countPos = 0;
         double freePos = 0;
@@ -71,7 +65,6 @@ public class SpaceAroundAvatarConstraint extends AbstractConstraint {
 
         int x4 = x - 1;
         int y4 = y;
-
 
 
         if (x1 < level[y].length && x1 >= 0 && y1 < level.length && y1 >= 0) {

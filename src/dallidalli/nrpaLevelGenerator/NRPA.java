@@ -13,6 +13,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+/**
+ * Class to apply NRPA to generate a level.
+ */
 public class NRPA {
 
     public Policy emptyPolicy;
@@ -33,7 +36,6 @@ public class NRPA {
 
     public ArrayList<Policy> policiesL = new ArrayList<>();
     public ArrayList<Double> scoreL = new ArrayList<>();
-    //public ArrayList<ArrayList<Integer>> sequenceL = new ArrayList<>();
 
     public NRPA(int width, int height, boolean empty) {
 
@@ -62,47 +64,6 @@ public class NRPA {
         allSprites.clear();
         allSprites.addAll(tmp);
 
-        /*
-
-        ArrayList<String> tmpHarmful = new ArrayList<>();
-        ArrayList<String> tmpOther = new ArrayList<>();
-        ArrayList<String> tmpCollectable = new ArrayList<>();
-        ArrayList<String> tmpSolid = new ArrayList<>();
-        ArrayList<String> tmpAvatar = new ArrayList<>();
-
-        for (String sprite:allSprites) {
-            if(SharedData.gameAnalyzer.getHarmfulSprites().contains(sprite)){
-                tmpHarmful.add(sprite);
-            } else if(SharedData.gameAnalyzer.getOtherSprites().contains(sprite)){
-                tmpOther.add(sprite);
-            } else if(SharedData.gameAnalyzer.getCollectableSprites().contains(sprite)){
-                tmpCollectable.add(sprite);
-            } else if(SharedData.gameAnalyzer.getSolidSprites().contains(sprite)){
-                tmpSolid.add(sprite);
-            } else if(SharedData.gameAnalyzer.getAvatarSprites().contains(sprite)){
-                tmpAvatar.add(sprite);
-            }
-        }
-
-        int maxAmount = Math.max(tmpHarmful.size(), Math.max(tmpOther.size(), Math.max(tmpCollectable.size(), Math.max(tmpSolid.size(), tmpAvatar.size()))));
-
-        for (int i = 0; i < maxAmount - tmpHarmful.size(); i++){
-            allSprites.add(tmpHarmful.get(SharedData.random.nextInt(tmpHarmful.size())));
-        }
-        for (int i = 0; i < maxAmount - tmpOther.size(); i++){
-            allSprites.add(tmpOther.get(SharedData.random.nextInt(tmpOther.size())));
-        }
-        for (int i = 0; i < maxAmount - tmpCollectable.size() -1; i++){
-            allSprites.add(tmpCollectable.get(SharedData.random.nextInt(tmpCollectable.size())));
-        }
-        for (int i = 0; i < maxAmount - tmpSolid.size() +1; i++){
-            allSprites.add(tmpSolid.get(SharedData.random.nextInt(tmpSolid.size())));
-        }
-        for (int i = 0; i < maxAmount - tmpAvatar.size(); i++){
-            allSprites.add(tmpAvatar.get(SharedData.random.nextInt(tmpAvatar.size())));
-        }
-        */
-
         calcActions();
         numberOfSprites = allSprites.size();
 
@@ -113,10 +74,6 @@ public class NRPA {
             scoreL.add(Double.MIN_VALUE);
             policiesL.add(new Policy(emptyPolicy, true));
         }
-
-        //numberOfIterations = (int) (allPossibleActions.size()*0.3 + cutoff*allPossibleActions.size()*0.003);
-        //addSequence(allPossibleActions, new ArrayList<>());
-        //generateTableFromMap(0);
 
         System.out.println("number of actions: " + allPossibleActions.size());
     }
@@ -146,9 +103,6 @@ public class NRPA {
     }
 
     public Pair<Pair<Double, ArrayList<Integer>>, Policy> recursiveNRPA(int level, Policy p, Pair<Double, ArrayList<Integer>> prevBest){
-        //double best = scoreL.get(level);
-        //double best = Double.MIN_VALUE;
-
 
         Pair<Pair<Double, ArrayList<Integer>>, Policy> bestResult, curResult;
 
@@ -206,7 +160,6 @@ public class NRPA {
         }else {
 
 
-
             bestResult = new Pair<>(prevBest, p);
             boolean foundBetter = false;
 
@@ -225,7 +178,6 @@ public class NRPA {
                 if(curResult.first.first >= bestResult.first.first){
                     if(curResult.first.first >= bestResult.first.first){
                         foundBetter = true;
-                        //System.out.println("better");
                     }
 
                     bestResult = curResult;
@@ -238,26 +190,15 @@ public class NRPA {
                 }
 
             }
-
-            /*
-            if(foundBetter){
-                p = adapt(bestResult.first, p);
-            }
-            */
         }
 
         bestResult.second = p;
 
-        if(level == 1){
-            //System.out.println(p.size());
-        }
-        //scoreL.set(level, bestResult.first.first);
+
         return bestResult;
     }
 
     public ArrayList<Pair<Pair<Double, ArrayList<Integer>>, Policy>> recursiveBeamNRPA(int level, Policy p, ArrayList<Pair<Pair<Double, ArrayList<Integer>>, Policy>> prevBest){
-        //double best = scoreL.get(level);
-        //double best = Double.MIN_VALUE;
 
         if(level == 0){
             ArrayList<Integer> seq = new ArrayList<>();
@@ -358,7 +299,7 @@ public class NRPA {
                         }
 
                         if(!added2 || index >= SharedData.NRPA_B){
-                            //newBeam.add(beam1.get(k));
+
                         } else {
                             beam1.get(k).second = adapt(beam1.get(k).first, p);
                             newBeam.add(index, beam1.get(k));
@@ -458,8 +399,7 @@ public class NRPA {
     private Double getEvalValue(ArrayList<SpritePointData> seq) {
         getLevel(seq, false);
         double value = 0;
-        //level.calculateSoftConstraints(false, useNewConstraint);
-        //value = level.getConstrainFitness();
+
         value = level.calculateFitness(SharedData.EVALUATION_TIME);
         resetLevel(seq);
         return value;
@@ -467,7 +407,6 @@ public class NRPA {
 
     private boolean isTerminal(ArrayList<Integer> actions, double fitness) {
         double currentCoverage = (possiblePositions - (actions.size() / allSprites.size())) / possiblePositions;
-        //System.out.println((currentCoverage > SharedData.MAX_COVER_PERCENTAGE) + " " +  (getSoftValue(seq) >= 1) + " "+ seq.size());
         return ((currentCoverage >= SharedData.desiredCoverage) || fitness >= 1);
     }
 

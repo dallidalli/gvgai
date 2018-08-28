@@ -6,6 +6,9 @@ import tools.GameAnalyzer;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * Constraint to check that all end conditions are unsatisfied in the beginning.
+ */
 public class EndsInitiallyConstraint extends AbstractConstraint {
 
     public ArrayList<GameDescription.TerminationData> terminationConditions;

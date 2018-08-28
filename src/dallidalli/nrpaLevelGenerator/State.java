@@ -1,5 +1,8 @@
 package dallidalli.nrpaLevelGenerator;
 
+/**
+ * Class to represent a State in NRPA
+ */
 public class State {
 
     int[] sequence;

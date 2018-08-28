@@ -5,6 +5,9 @@ import tools.Pair;
 import java.awt.*;
 import java.util.ArrayList;
 
+/**
+ * Compare closest goal position to the position of the avatar. This value is compared to the maximum theoretical distance.
+ */
 public class GoalDistanceConstraint extends AbstractConstraint{
 
     public int width;

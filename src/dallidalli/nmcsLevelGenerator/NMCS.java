@@ -8,6 +8,9 @@ import tools.Pair;
 
 import java.util.ArrayList;
 
+/**
+ * Class to apply NMCS to generate a level
+ */
 public class NMCS {
 
     public ArrayList<SpritePointData> allPossibleActions = new ArrayList<>();
@@ -45,46 +48,6 @@ public class NMCS {
         }
         allSprites.clear();
         allSprites.addAll(tmp);
-
-        /*
-        ArrayList<String> tmpHarmful = new ArrayList<>();
-        ArrayList<String> tmpOther = new ArrayList<>();
-        ArrayList<String> tmpCollectable = new ArrayList<>();
-        ArrayList<String> tmpSolid = new ArrayList<>();
-        ArrayList<String> tmpAvatar = new ArrayList<>();
-
-        for (String sprite:allSprites) {
-            if(SharedData.gameAnalyzer.getHarmfulSprites().contains(sprite)){
-                tmpHarmful.add(sprite);
-            } else if(SharedData.gameAnalyzer.getOtherSprites().contains(sprite)){
-                tmpOther.add(sprite);
-            } else if(SharedData.gameAnalyzer.getCollectableSprites().contains(sprite)){
-                tmpCollectable.add(sprite);
-            } else if(SharedData.gameAnalyzer.getSolidSprites().contains(sprite)){
-                tmpSolid.add(sprite);
-            } else if(SharedData.gameAnalyzer.getAvatarSprites().contains(sprite)){
-                tmpAvatar.add(sprite);
-            }
-        }
-
-        int maxAmount = Math.max(tmpHarmful.size(), Math.max(tmpOther.size(), Math.max(tmpCollectable.size(), Math.max(tmpSolid.size(), tmpAvatar.size()))));
-
-        for (int i = 0; i < maxAmount - tmpHarmful.size(); i++){
-            allSprites.add(tmpHarmful.get(SharedData.random.nextInt(tmpHarmful.size())));
-        }
-        for (int i = 0; i < maxAmount - tmpOther.size(); i++){
-            allSprites.add(tmpOther.get(SharedData.random.nextInt(tmpOther.size())));
-        }
-        for (int i = 0; i < maxAmount - tmpCollectable.size() -1; i++){
-            allSprites.add(tmpCollectable.get(SharedData.random.nextInt(tmpCollectable.size())));
-        }
-        for (int i = 0; i < maxAmount - tmpSolid.size() +1; i++){
-            allSprites.add(tmpSolid.get(SharedData.random.nextInt(tmpSolid.size())));
-        }
-        for (int i = 0; i < maxAmount - tmpAvatar.size(); i++){
-            allSprites.add(tmpAvatar.get(SharedData.random.nextInt(tmpAvatar.size())));
-        }
-        */
 
         calcPositions();
         calcActionsInitial();
@@ -125,10 +88,6 @@ public class NMCS {
         }
     }
 
-    public void resetActions(){
-        calcActions();
-    }
-
     public Pair<Double, ArrayList<Integer>> selectAction(int level, ArrayList<SpritePointData> currentState, Pair<Double, ArrayList<Integer>> oldResult) {
 
 
@@ -140,7 +99,6 @@ public class NMCS {
         ArrayList<Integer> visitedActions = new ArrayList<Integer>();
 
         while (!isTerminal(currentState.size(), 0)) {
-
 
 
             Pair<Double, ArrayList<Integer>> currentBest = new Pair<>(Double.MIN_VALUE, new ArrayList<Integer>());
@@ -184,9 +142,6 @@ public class NMCS {
         }
 
         globalBest.first = fitness;
-        //System.out.println(level);
-        //System.out.println(globalBest.second.size());
-        //System.out.println(evaluated);
 
         if(globalBest.first > oldResult.first)
             return globalBest;
@@ -223,8 +178,6 @@ public class NMCS {
                         tmpBest = move.first;
                         tmpSeq = new ArrayList<Integer>(move.second);
                     }
-
-                    //System.out.println(currentState.size());
                 }
             } else {
 
@@ -238,8 +191,6 @@ public class NMCS {
                         tmpBest = move.first;
                         tmpSeq = new ArrayList<>(move.second);
                     }
-
-                    //System.out.println(currentState.size());
                 }
             }
 
@@ -262,24 +213,8 @@ public class NMCS {
             ply++;
 
 
-
         }
-        //System.out.println(evaluated+ " " + currentState.size() + " "+ bestSeq.size() + " " + curSeq.size());
-        double preFitness = fitness;
         fitness = getEvalValueRollout(curSeqAction);
-
-        /*
-        sorted = new ArrayList<>(bestSeq);
-        Collections.sort(sorted);
-        if(results.containsKey(sorted)){
-            bestScore = results.get(sorted);
-        } else {
-            bestScore = getEvalValue(bestSeq);
-            results.put(sorted, bestScore);
-        }
-        */
-
-        //return new Pair<Double, ArrayList<Integer>>(fitness, curSeq);
 
         if(fitness >= bestScore){
             countBetter++;
@@ -298,7 +233,6 @@ public class NMCS {
         double fitness = 0;
 
 
-
         while(!isTerminal(currentState.size(), fitness)){
             int selectedChild = SharedData.random.nextInt(currentState.size());
             seqIndex.add(selectedChild);
@@ -308,7 +242,6 @@ public class NMCS {
 
 
         fitness = getEvalValueRollout(seq);
-
 
 
         evaluated++;
@@ -328,7 +261,6 @@ public class NMCS {
         double fitness = 0;
 
 
-
         while(!isTerminal(currentState.size(), fitness)){
             int selectedChild = SharedData.random.nextInt(currentState.size());
             seqIndex.add(selectedChild);
@@ -338,7 +270,6 @@ public class NMCS {
 
 
         fitness = getEvalValueRollout(seq);
-
 
 
         evaluated++;
@@ -385,8 +316,6 @@ public class NMCS {
 
         getLevel(seq, false);
         double value = 0;
-        //level.calculateSoftConstraints(false, useNewConstraint);
-        //value = level.getConstrainFitness();
         value = level.calculateFitness(SharedData.EVALUATION_TIME);
         resetLevel(seq);
         return value;
@@ -396,8 +325,6 @@ public class NMCS {
     private Double getEvalValueRollout(ArrayList<SpritePointData> seq) {
         getLevel(seq, false);
         double value = 0;
-        //level.calculateSoftConstraints(false, useNewConstraint);
-        //value = level.getConstrainFitness();
         value = level.calculateFitness(SharedData.EVALUATION_TIME);
         resetLevel(seq);
         return value;
@@ -405,13 +332,12 @@ public class NMCS {
 
     private boolean isTerminal(double size, double fitness) {
         double currentCoverage = (possiblePositions - (size / allSprites.size())) / possiblePositions;
-        //System.out.println((currentCoverage > SharedData.MAX_COVER_PERCENTAGE) + " " +  (getSoftValue(seq) >= 1) + " "+ seq.size());
         return ((currentCoverage >= SharedData.desiredCoverage) || fitness >= 1);
     }
 
     public ArrayList<SpritePointData> customActionsSingleCalc(ArrayList<SpritePointData> allActions, int indexKnown) {
         int start = (int) (Math.floor(indexKnown / allSprites.size())*allSprites.size());
-        int end = (int) (start+allSprites.size());
+        int end = (start + allSprites.size());
 
 
         for (int i = start; i < end; i++) {

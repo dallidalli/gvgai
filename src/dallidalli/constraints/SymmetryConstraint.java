@@ -2,6 +2,9 @@ package dallidalli.constraints;
 
 import java.util.ArrayList;
 
+/**
+ * Check for symmetry
+ */
 public class SymmetryConstraint extends AbstractConstraint {
 
     public ArrayList<String>[][] level;
@@ -39,7 +42,7 @@ public class SymmetryConstraint extends AbstractConstraint {
         }
 
         if(level[(height-1-y)][x].size() > 0){
-           sprite2 = level[(height-1-y)][x].get(0);
+            sprite2 = level[(height - 1 - y)][x].get(0);
         }
 
         if(level[(height-1-y)][(width-1-x)].size() > 0){
@@ -56,7 +59,7 @@ public class SymmetryConstraint extends AbstractConstraint {
         sprites.add(sprite3);
         sprites.add(sprite4);
 
-            double counter = 0;
+        double counter = 0;
         for(int i = 0; i < sprites.size(); i++){
             if(avatarSpritesIn.contains(sprites.get(i))){
                 return 1;

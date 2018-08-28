@@ -16,8 +16,6 @@ import java.util.Random;
 
 public class LevelGenerator extends AbstractLevelGenerator{
 
-    private final Object bestLevel;
-    private ArrayList<Double> bestFitness;
     private LevelMapping root;
 
     public LevelGenerator(GameDescription game, ElapsedCpuTimer elapsedTimer){
@@ -25,14 +23,11 @@ public class LevelGenerator extends AbstractLevelGenerator{
         SharedData.gameDescription = game;
         SharedData.gameAnalyzer = new GameAnalyzer(game);
         SharedData.constructiveGen = new tracks.levelGeneration.constructiveLevelGenerator.LevelGenerator(game, null);
-        bestLevel = null;
-        bestFitness = null;
     }
 
     @Override
     public String generateLevel(GameDescription game, ElapsedCpuTimer elapsedTimer) {
         //initialize the statistics objects
-        bestFitness = new ArrayList<Double>();
         SharedData.gameDescription = game;
 
         int size = 0;
@@ -50,9 +45,6 @@ public class LevelGenerator extends AbstractLevelGenerator{
 
         NMCS search = new NMCS(width, height, true);
         search.level.calculateSoftConstraints(true, SharedData.useNewConstraints);
-        ArrayList<SpritePointData> workedActions = new ArrayList<>(search.allPossibleActions);
-        //LevelEvaluationFunction eval = new LevelEvaluationFunction();
-        //eval.generateEvaluationFunction();
 
 
         //some variables to make sure not getting out of time
@@ -76,10 +68,6 @@ public class LevelGenerator extends AbstractLevelGenerator{
 
 
         Pair<Double, ArrayList<Integer>> result = new Pair<Double, ArrayList<Integer>>(Double.MIN_VALUE, new ArrayList<Integer>());
-
-        ArrayList<Integer> cutoff = new ArrayList<Integer>();
-
-        long endTimeMs = System.currentTimeMillis() + elapsedTimer.remainingTimeMillis();
 
         System.out.println(numberOfIterations + " " + elapsedTimer.remainingTimeMillis() + " " + avgTime + " " + worstTime);
         while(elapsedTimer.remainingTimeMillis() > 2 * avgTime &&
@@ -128,19 +116,10 @@ public class LevelGenerator extends AbstractLevelGenerator{
             }
         }
 
-        // System.out.println(result.first);
-/*
-        if(injected && cutoff.size() >0){
-            result.second.add(0, cutoff.get(0));
-        }*/
-
         ArrayList<SpritePointData> finalSeq = search.translateSequence(search.allPossibleActions, result.second);
-        // System.out.println(finalSeq);
-
 
         root = search.getLevel(finalSeq, true).getLevelMapping();
         search.resetLevel(finalSeq);
-        // System.out.println("Done " + numberOfIterations);
 
         String name = "NMCS";
         String setting = SharedData.MIN_SIZE + "x" + SharedData.MAX_SIZE + "_level"+ level + "_injected" + injected;

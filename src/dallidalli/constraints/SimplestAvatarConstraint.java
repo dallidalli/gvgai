@@ -6,13 +6,15 @@ import tools.GameAnalyzer;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * Check that the avatar is in the simplest possible form.
+ */
 public class SimplestAvatarConstraint extends AbstractConstraint {
 
     public ArrayList<String> avatarSpritesIn;
     public ArrayList<GameDescription.SpriteData> allSprites;
     public GameAnalyzer gameAnalyzer;
     public HashMap<String, Integer> spriteOccurrences;
-
 
 
     @Override
